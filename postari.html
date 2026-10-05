@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Postări – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+</head>
+<body class="font-sans antialiased">
+  <header class="site-header">
+    <div class="header-inner mx-auto px-4 py-3 flex items-center justify-between gap-3 w-full">
+      <a href="index.html"><img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 w-auto object-contain"></a>
+      <nav class="hidden lg:flex items-center gap-5 text-sm font-medium">
+        <a href="index.html" style="color:var(--text)">Acasă</a>
+        <a href="postari.html" style="color:var(--teal);border-bottom:2px solid var(--teal);padding-bottom:2px">Postări</a>
+        <a href="forum.html" style="color:var(--text)">Forum</a>
+        <a href="despre.html" style="color:var(--text)">Despre</a>
+        <a href="evenimente.html" style="color:var(--text)">Evenimente</a>
+        <a href="contact.html" style="color:var(--text)">Contact</a>
+      </nav>
+      <div class="header-right flex items-center gap-2">
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+        <button type="button" data-lang-btn class="btn-yellow text-xs px-2.5 py-1">EN</button>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-3xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold mb-6" style="color:var(--text)">Postări</h1>
+    <div id="posts" class="space-y-5"></div>
+  </main>
+  <script src="js/main.js"></script>
+  <script>
+    (async function () {
+      const box = document.getElementById('posts');
+      try {
+        const list = await window.FarcasaPosts.list();
+        if (!list.length) {
+          box.innerHTML = '<p class="text-muted">Nicio postare încă.</p>';
+          return;
+        }
+        box.innerHTML = list.map((p) => `
+          <article class="card p-5">
+            <h2 class="text-xl font-bold" style="color:var(--text)">${p.title || ''}</h2>
+            <p class="text-xs text-muted mb-3">${p.date ? new Date(p.date).toLocaleString('ro-RO') : ''}</p>
+            ${p.image ? `<img src="${p.image}" alt="" class="w-full rounded-xl mb-3 object-cover max-h-96">` : ''}
+            <p class="whitespace-pre-wrap" style="color:var(--text)">${(p.text || '').replace(/</g,'<')}</p>
+            ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener" class="inline-block mt-3 font-semibold" style="color:var(--teal)">${p.link}</a>` : ''}
+          </article>`).join('');
+      } catch (e) {
+        box.innerHTML = '<p style="color:var(--red)">Nu s-au putut încărca postările. Verifică regulile Firestore.</p>';
+      }
+    })();
+  </script>
+</body>
+</html>

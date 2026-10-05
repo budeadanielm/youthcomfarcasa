@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tichet – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+</head>
+<body class="font-sans antialiased">
+  <header class="site-header"><div class="header-inner mx-auto px-4 py-3 flex items-center justify-between w-full"><a href="index.html"><img src="assets/logo-farcasa.png" alt="" class="h-12"></a><nav class="site-nav hidden lg:flex"></nav><div class="header-right flex items-center gap-2"></div></div></header>
+  <div id="fy-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px">
+    <div style="width:min(440px,100%);background:var(--bg-card,#fff);color:var(--text,#111);border-radius:16px;padding:20px">
+      <h3 id="fy-title" style="margin:0 0 8px;font-size:18px;font-weight:700"></h3>
+      <p id="fy-text" style="margin:0 0 12px;font-size:14px"></p>
+      <textarea id="fy-input" style="display:none;width:100%;padding:10px;border-radius:10px;border:1px solid var(--border,#ccc);margin-bottom:8px;background:var(--bg,#fff);color:inherit" rows="3"></textarea>
+      <input id="fy-file" type="file" accept="image/*" style="display:none;margin-bottom:8px">
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" id="fy-cancel" style="padding:8px 14px;border-radius:10px;border:1px solid var(--border,#ccc);background:transparent;color:inherit">Nu</button>
+        <button type="button" id="fy-ok" style="padding:8px 14px;border-radius:10px;border:0;background:#0f766e;color:#fff">Da</button>
+      </div>
+    </div>
+  </div>
+  <main class="max-w-2xl mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-2" style="color:var(--text)">Support</h1>
+    <div class="card p-4 mb-4 text-sm" style="color:var(--text)">
+      <p class="font-semibold mb-2">Prevederi</p>
+      <ul class="list-disc pl-5 space-y-1 text-muted">
+        <li>Tichetul e pentru contestarea unui ban, nu pentru chat general.</li>
+        <li>Un admin trebuie să preia tichetul înainte să poți continua conversația.</li>
+        <li>Dovezile sunt opționale. Nu atașa date personale inutile.</li>
+        <li>După soluționare, conversația rămâne vizibilă, dar nu mai poți scrie.</li>
+        <li>Un tichet respins sau soluționat poate fi redeschis doar de un administrator.</li>
+      </ul>
+    </div>
+    <button type="button" id="btn-new" class="btn-primary text-sm mb-4">Creează tichet</button>
+    <div id="ticket-list" class="space-y-2 mb-4"></div>
+    <div id="chat-box" class="card p-4 hidden">
+      <h2 id="chat-title" class="font-bold mb-2" style="color:var(--text)"></h2>
+      <div id="chat-log" class="space-y-2 text-sm mb-3" style="max-height:320px;overflow:auto"></div>
+      <form id="chat-form" class="space-y-2">
+        <div id="chat-text" contenteditable="true" class="w-full px-3 py-2" data-placeholder="Mesaj către admin" style="min-height:44px;border:1px solid var(--border);border-radius:0.75rem"></div>
+        <input type="file" id="chat-file" accept="image/*" class="text-xs">
+        <button class="btn-primary text-sm" type="submit">Trimite</button>
+        <p id="chat-err" class="text-sm hidden" style="color:var(--red)"></p>
+      </form>
+    </div>
+  </main>
+  <script src="js/main.js"></script>
+  <script>
+  function fyAsk(opts) {
+    const root = document.getElementById('fy-modal');
+    document.getElementById('fy-title').textContent = opts.title || '';
+    document.getElementById('fy-text').textContent = opts.text || '';
+    const input = document.getElementById('fy-input');
+    const file = document.getElementById('fy-file');
+    input.style.display = opts.prompt ? 'block' : 'none';
+    file.style.display = opts.file ? 'block' : 'none';
+    input.value = '';
+    document.getElementById('fy-ok').textContent = opts.okLabel || 'Da';
+    document.getElementById('fy-cancel').textContent = opts.cancelLabel || 'Nu';
+    root.style.display = 'flex';
+    return new Promise((resolve) => {
+      const close = (v) => { root.style.display = 'none'; resolve(v); };
+      document.getElementById('fy-ok').onclick = () => close({ ok: true, text: input.value.trim(), file: file.files[0] || null });
+      document.getElementById('fy-cancel').onclick = () => close({ ok: false });
+    });
+  }
+  function fileToData(file) {
+    return new Promise((res) => {
+      if (!file) return res('');
+      const img = new Image();
+      const r = new FileReader();
+      r.onload = () => { img.src = r.result; };
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        const s = Math.min(800 / img.width, 800 / img.height, 1);
+        c.width = img.width * s; c.height = img.height * s;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL('image/jpeg', 0.7));
+      };
+      r.readAsDataURL(file);
+    });
+  }
+  (async function () {
+    if (window.FarcasaAuth?.waitAuth) await window.FarcasaAuth.waitAuth(4000);
+    if (!window.FarcasaAuth.isLoggedIn()) { location.href = 'login.html'; return; }
+    let current = null;
+    let rows = [];
+    let unsub = null;
+    function paint(msgs) {
+      const me = (window.FarcasaAuth.getUser() || {}).uid;
+      document.getElementById('chat-log').innerHTML = msgs.map(m => {
+        const mine = m.authorId === me;
+        return `<div class="flex ${mine ? 'justify-end' : 'justify-start'}"><div class="max-w-[80%] px-3 py-2 rounded-xl" style="background:${mine ? 'var(--teal-soft,#ccfbf1)' : 'var(--bg-card)'};border:1px solid var(--border)"><div class="text-xs font-semibold">${m.authorName || ''}</div><div>${m.text || ''}</div>${m.image ? `<img src="${m.image}" class="max-h-32 mt-1 rounded">` : ''}</div></div>`;
+      }).join('') || '<p class="text-muted">Niciun mesaj.</p>';
+      const log = document.getElementById('chat-log');
+      log.scrollTop = log.scrollHeight;
+    }
+    async function load() {
+      rows = await window.FarcasaTickets.mine();
+      document.getElementById('ticket-list').innerHTML = rows.map(t =>
+        `<button type="button" class="card p-4 w-full text-left" data-id="${t.id}">
+          <div class="flex justify-between"><strong>#${t.number || t.id}</strong><span class="text-xs">${t.status || 'pending'}</span></div>
+          <div class="text-xs text-muted mt-1">${t.handlerEmail || 'nepreluat'}</div>
+          <div class="text-sm mt-2">${(t.text || '').slice(0, 120)}</div>
+        </button>`).join('') || '<p class="text-sm text-muted">Niciun tichet. Apasă Tichet nou.</p>';
+      document.querySelectorAll('[data-id]').forEach(b => b.onclick = () => open(b.dataset.id));
+    }
+    async function open(id) {
+      current = id;
+      const ticket = rows.find(x => x.id === id) || {};
+      document.getElementById('chat-box').classList.remove('hidden');
+      const closed = ticket.status === 'resolved' || ticket.status === 'rejected';
+      document.getElementById('chat-title').textContent = '#' + (ticket.number || id);
+      document.getElementById('chat-sub').textContent = closed ? 'Închis' : (ticket.handlerEmail ? 'Preluat de ' + ticket.handlerEmail : 'Așteaptă un admin');
+      const dec = document.getElementById('chat-decision');
+      dec.classList.toggle('hidden', !closed);
+      dec.innerHTML = closed ? ('<div>Soluționat de <strong>' + (ticket.closedBy || '—') + '</strong></div><div>Decizie: <strong>' + (ticket.decision || '—') + '</strong></div><div>Motiv: ' + (ticket.decisionReason || '—') + '</div>') : '';
+      document.getElementById('chat-form').style.display = closed ? 'none' : '';
+      if (unsub) unsub();
+      unsub = window.FarcasaTickets.listen(id, paint);
+    }
+    document.getElementById('btn-new').onclick = async () => {
+      const read = await fyAsk({ title: 'Prevederi', text: 'Confirm că am citit prevederile comunității.', okLabel: 'Confirm', cancelLabel: 'Nu' });
+      if (!read.ok) return;
+      const q = await fyAsk({ title: 'Tichet nou', text: 'Dorești să creezi un ticket?', okLabel: 'Da', cancelLabel: 'Nu' });
+      if (!q.ok) return;
+      const motiv = await fyAsk({ title: 'Motiv', text: 'Scrie motivul contestației.', prompt: true, okLabel: 'Continuă', cancelLabel: 'Anulează' });
+      if (!motiv.ok || !motiv.text) return;
+      const dovezi = await fyAsk({ title: 'Dovezi', text: 'Poți atașa o poză. E opțional.', file: true, okLabel: 'Deschide tichetul', cancelLabel: 'Fără poză' });
+      const image = dovezi.ok ? await fileToData(dovezi.file) : '';
+      const created = await window.FarcasaTickets.add(motiv.text, image);
+      await fyAsk({ title: 'Gata', text: 'Tichet deschis: #' + created.number, okLabel: 'OK', cancelLabel: 'Închide' });
+      await load();
+      open(created.id);
+    };
+    document.getElementById('chat-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('chat-err');
+      err.classList.add('hidden');
+      try {
+        const image = await fileToData(document.getElementById('chat-file').files[0]);
+        await window.FarcasaTickets.send(current, document.getElementById('chat-text').innerText, image);
+        document.getElementById('chat-text').innerText = '';
+        document.getElementById('chat-file').value = '';
+      } catch (ex) {
+        err.textContent = ex.message || String(ex);
+        err.classList.remove('hidden');
+      }
+    };
+    load();
+  })();
+  </script>
+</body>
+</html>

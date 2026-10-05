@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+</head>
+<body class="font-sans antialiased" data-page="dashboard">
+  <header class="site-header">
+    <div class="header-inner mx-auto px-4 py-3 flex items-center justify-between gap-3 w-full">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-12 w-auto object-contain">
+        <div class="min-w-0">
+          <div class="font-bold leading-tight" style="color:var(--text)">Control panel-ul site-ului</div>
+          <div class="text-xs text-muted">Dashboardul administratorilor</div>
+        </div>
+      </div>
+      <div class="header-right flex items-center gap-2">
+        <a href="index.html" class="btn-primary text-sm py-1.5 px-3">Înapoi pe site</a>
+        <a href="https://www.instagram.com/tineri.farcasa/" target="_blank" rel="noopener" class="social-link" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.facebook.com/share/1CbVL5u2SM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="social-link" title="Facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  
+  <div id="fy-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px">
+    <div style="width:min(420px,100%);background:var(--bg-card,#fff);color:var(--text,#111);border-radius:16px;padding:20px;font-family:Inter,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.3)">
+      <h3 id="fy-title" style="margin:0 0 8px;font-size:18px;font-weight:700"></h3>
+      <p id="fy-text" style="margin:0 0 12px;font-size:14px;opacity:.8"></p>
+      <input id="fy-input" autocomplete="off" style="display:none;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border,#ccc);margin-bottom:12px;background:var(--bg,#fff);color:inherit">
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" id="fy-cancel" style="padding:8px 14px;border-radius:10px;border:1px solid var(--border,#ccc);background:transparent;color:inherit;cursor:pointer">Anulează</button>
+        <button type="button" id="fy-ok" style="padding:8px 14px;border-radius:10px;border:0;background:#0f766e;color:#fff;cursor:pointer">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="preview-bar" class="hidden px-4 py-2 flex items-center justify-between gap-3" style="background:var(--bg-muted);border-bottom:1px solid var(--border)">
+    <span id="preview-label" class="text-sm font-semibold" style="color:var(--text)">Previzualizare</span>
+    <button type="button" id="preview-back" class="btn-primary text-sm py-1.5">Înapoi în dashboard</button>
+  </div>
+  <iframe id="preview-frame" class="hidden w-full" style="height:calc(100vh - 120px);border:0;background:var(--bg)"></iframe>
+  <main id="dash-main" class="max-w-6xl mx-auto px-4 py-8">
+    <p id="dash-error" class="hidden mb-4 p-3 rounded-xl text-sm" style="background:var(--red-soft);color:var(--text)"></p>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="card p-4 text-center">
+        <div class="text-2xl font-extrabold" style="color:var(--teal)" id="ov-events">–</div>
+        <div class="text-xs text-muted">Evenimente</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl font-extrabold" style="color:var(--yellow)" id="ov-feedback">–</div>
+        <div class="text-xs text-muted">Feedback-uri</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl font-extrabold" style="color:var(--red)" id="ov-vol">–</div>
+        <div class="text-xs text-muted">Voluntari (ind. 1)</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl font-extrabold" style="color:var(--blue)" id="ov-users">–</div>
+        <div class="text-xs text-muted">Utilizatori</div>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-6" id="tabs">
+      <button type="button" data-tab="overview" class="tab-btn btn-primary text-sm py-2">Overview</button>
+      <button type="button" data-tab="indicators" class="tab-btn btn-ghost text-sm">Indicatori</button>
+      <button type="button" data-tab="events" class="tab-btn btn-ghost text-sm">Calendar</button>
+      <button type="button" data-tab="feedbacks" class="tab-btn btn-ghost text-sm">Feedback</button>
+      <button type="button" data-tab="messages" class="tab-btn btn-ghost text-sm">Mesaje</button>
+      <button type="button" data-tab="posts" class="tab-btn btn-ghost text-sm">Postări</button>
+      <button type="button" data-tab="users" class="tab-btn btn-ghost text-sm">Utilizatori</button>
+      <button type="button" data-tab="tickets" class="tab-btn btn-ghost text-sm">Tichete ban</button>
+      <button type="button" data-tab="tools" class="tab-btn btn-ghost text-sm">Unelte</button>
+    </div>
+
+    <section id="tab-overview">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <a href="evenimente.html" class="card p-4 card-hover block">
+          <div class="font-bold" style="color:var(--teal)">→ Calendar public</div>
+          <div class="text-xs text-muted">Evenimentele editate aici apar pe site</div>
+        </a>
+        <a href="monitorizare.html" class="card p-4 card-hover block">
+          <div class="font-bold" style="color:var(--red)">→ Monitorizare publică</div>
+          <div class="text-xs text-muted">Indicatorii se actualizează din tab-ul Indicatori</div>
+        </a>
+        <a href="forum.html" class="card p-4 card-hover block">
+          <div class="font-bold" style="color:var(--yellow)">→ Forum</div>
+          <div class="text-xs text-muted">Rolurile setate aici colorează chat-ul</div>
+        </a>
+        <a href="feedback.html" class="card p-4 card-hover block">
+          <div class="font-bold" style="color:var(--blue)">→ Formular feedback</div>
+          <div class="text-xs text-muted">Răspunsurile apar în tab-ul Feedback</div>
+        </a>
+      </div>
+    </section>
+
+    <section id="tab-indicators" class="hidden">
+      <div class="flex justify-end mb-3"><button type="button" class="btn-ghost text-sm preview-btn" data-preview="monitorizare.html" data-label="Monitorizare publică">Vezi pagina publică</button></div>
+      <div class="flex items-center justify-between mb-4 gap-2">
+        <h2 class="text-xl font-bold" style="color:var(--text)">Indicatori</h2>
+        <div class="flex gap-2">
+          <button type="button" id="save-ind" class="btn-primary text-sm py-2">Salvează</button>
+          <button type="button" id="reset-ind" class="btn-outline text-sm py-2">Reset</button>
+        </div>
+      </div>
+      <p id="save-msg" class="hidden text-sm mb-3" style="color:var(--green)">Salvat!</p>
+      <div class="table-wrap card overflow-hidden">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Indicator</th>
+              <th class="text-center">Inițial</th>
+              <th class="text-center">Intermediar</th>
+              <th class="text-center">Final</th>
+            </tr>
+          </thead>
+          <tbody id="dash-ind-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-events" class="hidden">
+      <div class="flex justify-end mb-3"><button type="button" class="btn-ghost text-sm preview-btn" data-preview="evenimente.html" data-label="Calendar public">Vezi pagina publică</button></div>
+      <div class="flex items-center justify-between mb-4 gap-2">
+        <h2 class="text-xl font-bold" style="color:var(--text)">Calendar</h2>
+        <button type="button" id="ev-reset" class="btn-outline text-sm py-2">Reset default</button>
+      </div>
+      <div class="card p-4 mb-4">
+        <form id="ev-form" class="grid sm:grid-cols-2 gap-3">
+          <input type="text" name="title" required placeholder="Titlu" class="px-3 py-2">
+          <input type="date" name="date" required class="px-3 py-2">
+          <input type="text" name="desc" placeholder="Descriere" class="px-3 py-2 sm:col-span-2">
+          <select name="type" class="px-3 py-2">
+            <option value="teal">Teal</option>
+            <option value="red">Roșu</option>
+            <option value="yellow">Galben</option>
+          </select>
+          <button type="submit" class="btn-primary text-sm py-2">Adaugă</button>
+        </form>
+      </div>
+      <div id="ev-admin-list" class="space-y-2"></div>
+    </section>
+
+    <section id="tab-feedbacks" class="hidden">
+      <div class="flex justify-end mb-3"><button type="button" class="btn-ghost text-sm preview-btn" data-preview="feedback.html" data-label="Feedback public">Vezi pagina publică</button></div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold" style="color:var(--text)">Feedback</h2>
+        <button type="button" id="clear-fb" class="btn-outline text-sm py-2">Șterge toate</button>
+      </div>
+      <div id="fb-list" class="space-y-3"></div>
+      <p id="fb-empty" class="text-muted text-sm hidden">Niciun feedback.</p>
+    </section>
+
+
+    <section id="tab-messages" class="hidden">
+      <div class="flex justify-end mb-3"><button type="button" class="btn-ghost text-sm preview-btn" data-preview="contact.html" data-label="Contact public">Vezi pagina publică</button></div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold" style="color:var(--text)">Mesaje contact</h2>
+        <button type="button" id="msg-refresh" class="btn-primary text-sm py-2">Reîncarcă</button>
+      </div>
+      <div id="msg-list" class="space-y-3"></div>
+      <p id="msg-empty" class="text-muted text-sm hidden">Niciun mesaj.</p>
+    </section>
+
+    <section id="tab-posts" class="hidden">
+      <div class="flex justify-end mb-3"><button type="button" class="btn-ghost text-sm preview-btn" data-preview="postari.html" data-label="Postări publice">Vezi pagina publică</button></div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold" style="color:var(--text)">Postări</h2>
+        </div>
+      <form id="post-form" class="card p-4 mb-4 space-y-3">
+        <input type="text" name="title" required placeholder="Titlu" class="w-full px-3 py-2">
+        <textarea name="text" rows="3" required placeholder="Text" class="w-full px-3 py-2"></textarea>
+        <input type="url" name="link" placeholder="Link (opțional)" class="w-full px-3 py-2">
+        <input type="file" name="image" accept="image/*" class="text-sm">
+        <button type="submit" class="btn-primary text-sm py-2">Publică</button>
+      </form>
+      <div id="post-list" class="space-y-3"></div>
+    </section>
+
+    <section id="tab-users" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="text-xl font-bold" style="color:var(--text)">Utilizatori</h2>
+        <button type="button" id="users-refresh" class="btn-primary text-sm py-2">Reîncarcă</button>
+      </div>
+      <div class="table-wrap card overflow-hidden">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Roluri</th>
+              <th>Creat</th>
+            </tr>
+          </thead>
+          <tbody id="users-body"></tbody>
+        </table>
+      </div>
+      <p id="users-empty" class="text-muted text-sm mt-3 hidden">Niciun user în colecția users. Conturile apar după Sign up.</p>
+    </section>
+
+    <section id="tab-tickets" class="hidden">
+      <div class="flex items-center justify-between mb-4 gap-2">
+        <h2 class="text-xl font-bold" style="color:var(--text)">Tichete revocare ban</h2>
+        <div class="flex gap-2">
+          <button type="button" id="reload-tickets" class="btn-ghost text-sm">Reîncarcă</button>
+          <button type="button" id="clear-tickets" class="btn-outline text-sm hidden">Șterge toate tichetele</button>
+        </div>
+      </div>
+      <div id="solve-box" class="card p-4 mb-4 hidden">
+        <p class="font-semibold mb-2" style="color:var(--text)">Soluționează tichetul</p>
+        <div class="flex gap-2 mb-2">
+          <button type="button" id="solve-unban" class="btn-primary text-sm">Unban</button>
+          <button type="button" id="solve-ban" class="btn-outline text-sm">Ban</button>
+          <span class="text-sm self-center">Ales: <strong id="solve-choice">unban</strong></span>
+        </div>
+        <textarea id="solve-reason" class="w-full px-3 py-2 mb-2" rows="2" placeholder="Motiv"></textarea>
+        <div class="flex gap-2">
+          <button type="button" id="solve-save" class="btn-primary text-sm">Salvează decizia</button>
+          <button type="button" id="solve-cancel" class="btn-ghost text-sm">Anulează</button>
+        </div>
+      </div>
+      <div id="ticket-list" class="space-y-3"></div>
+      <div id="ticket-chat" class="card p-4 mt-4 hidden">
+        <h3 id="ticket-chat-title" class="font-bold mb-2" style="color:var(--text)">Conversație tichet</h3>
+        <p id="ticket-chat-closed" class="hidden text-sm mb-2 p-2 rounded-lg" style="background:var(--bg-muted)"></p>
+        <div id="ticket-chat-log" class="space-y-2 mb-3" style="max-height:280px;overflow:auto"></div>
+        <form id="admin-ticket-form" class="flex gap-2">
+          <div id="admin-ticket-text" contenteditable="true" class="flex-1 px-3 py-2" style="min-height:40px;border:1px solid var(--border);border-radius:0.75rem"></div>
+          <button class="btn-primary text-sm" type="submit">Trimite</button>
+        </form>
+      </div>
+    </section>
+    <section id="tab-tools" class="hidden">
+      <h2 class="text-xl font-bold mb-4" style="color:var(--text)">Unelte</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="card p-4">
+          <h3 class="font-semibold mb-2" style="color:var(--text)">Export JSON</h3>
+          <button type="button" id="export-json" class="btn-primary text-sm py-2">Export</button>
+        </div>
+        <div class="card p-4">
+          <h3 class="font-semibold mb-2" style="color:var(--text)">Import JSON</h3>
+          <input type="file" id="import-json" accept="application/json" class="text-sm">
+        </div>
+        <div class="card p-4 card-pale-red">
+          <h3 class="font-semibold mb-2" style="color:var(--text)">Șterge date locale</h3>
+          <p class="text-xs text-muted mb-2">Nu șterge Firestore. Doar cache-ul din browser.</p>
+          <button type="button" id="wipe-local" class="btn-red text-sm py-2">Wipe local</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/main.js"></script>
+  <script>
+  (async function () {
+
+    function fyAsk(opts) {
+      const root = document.getElementById('fy-modal');
+      const title = document.getElementById('fy-title');
+      const text = document.getElementById('fy-text');
+      const input = document.getElementById('fy-input');
+      const ok = document.getElementById('fy-ok');
+      const cancel = document.getElementById('fy-cancel');
+      title.textContent = opts.title || '';
+      text.textContent = opts.text || '';
+      input.style.display = opts.prompt ? 'block' : 'none';
+      input.value = opts.value || '';
+      cancel.style.display = opts.alert ? 'none' : '';
+      cancel.textContent = opts.cancelLabel || 'Anulează';
+      ok.textContent = opts.okLabel || 'OK';
+      root.style.display = 'flex';
+      return new Promise((resolve) => {
+        const close = (v) => { root.style.display = 'none'; ok.onclick = null; cancel.onclick = null; resolve(v); };
+        ok.onclick = () => close(opts.prompt ? input.value.trim() : true);
+        cancel.onclick = () => close(opts.prompt ? null : false);
+      });
+    }
+
+    const $ = (id) => document.getElementById(id);
+    const errBox = $('dash-error');
+
+    function showErr(e) {
+      errBox.textContent = e && e.message ? e.message : String(e);
+      errBox.classList.remove('hidden');
+    }
+
+    if (window.FarcasaAuth?.waitAuth) await window.FarcasaAuth.waitAuth(5000);
+    if (!window.FarcasaAuth?.isLoggedIn?.() || !window.FarcasaAuth.isAdmin()) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    $('logout-btn')?.addEventListener('click', async () => {
+      await window.FarcasaAuth.logout();
+      location.href = 'login.html';
+    });
+
+    const tabs = ['overview','indicators','events','feedbacks','messages','posts','users','tickets','tools'];
+    function setTab(name) {
+      tabs.forEach((t) => $('tab-' + t)?.classList.toggle('hidden', t !== name));
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.className = 'tab-btn text-sm py-2 ' + (btn.dataset.tab === name ? 'btn-primary' : 'btn-ghost');
+      });
+      if (name === 'indicators') renderInd();
+      if (name === 'events') renderEv();
+      if (name === 'feedbacks') renderFb();
+      if (name === 'users') renderUsers();
+      if (name === 'tickets') renderTickets();
+      if (name === 'messages') renderMessages();
+      if (name === 'posts') renderPosts();
+      if (name === 'overview') renderOv();
+    }
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => setTab(btn.dataset.tab));
+    });
+
+    async function renderOv() {
+      try {
+        const ind = await window.FarcasaData.getIndicators();
+        const ev = await window.FarcasaEvents.getAll();
+        const fb = await window.FarcasaData.getFeedbacks();
+        $('ov-events').textContent = ev.length;
+        $('ov-feedback').textContent = fb.length;
+        const v = ind.find((i) => i.id === 1);
+        if (v) $('ov-vol').textContent = v.final ?? v.mid ?? v.initial ?? '–';
+        if (window.FarcasaAuth.isSuperAdmin && window.FarcasaAuth.isSuperAdmin()) {
+          const users = await window.FarcasaAuth.listUsers();
+          $('ov-users').textContent = users.length;
+        } else {
+          $('ov-users').textContent = '–';
+        }
+      } catch (e) { showErr(e); }
+    }
+
+    async function renderInd() {
+      try {
+        const data = await window.FarcasaData.getIndicators();
+        $('dash-ind-body').innerHTML = data.map((ind) => `
+          <tr>
+            <td style="color:var(--teal);font-weight:700">${ind.id}</td>
+            <td class="text-xs max-w-xs">${(ind.name_ro || '').slice(0, 90)}</td>
+            <td class="text-center"><input type="number" data-id="${ind.id}" data-field="initial" value="${ind.initial}" class="w-20 px-2 py-1 text-center"></td>
+            <td class="text-center"><input type="number" data-id="${ind.id}" data-field="mid" value="${ind.mid}" class="w-20 px-2 py-1 text-center"></td>
+            <td class="text-center"><input type="number" data-id="${ind.id}" data-field="final" value="${ind.final}" class="w-20 px-2 py-1 text-center"></td>
+          </tr>`).join('');
+      } catch (e) { showErr(e); }
+    }
+
+    $('save-ind').addEventListener('click', async () => {
+      try {
+        const data = await window.FarcasaData.getIndicators();
+        document.querySelectorAll('#dash-ind-body input').forEach((inp) => {
+          const item = data.find((d) => d.id === +inp.dataset.id);
+          if (item) item[inp.dataset.field] = +inp.value || 0;
+        });
+        await window.FarcasaData.saveIndicators(data);
+        $('save-msg').classList.remove('hidden');
+        setTimeout(() => $('save-msg').classList.add('hidden'), 2000);
+        renderOv();
+      } catch (e) { showErr(e); }
+    });
+    $('reset-ind').addEventListener('click', async () => {
+      if (!(await fyAsk({ title: 'Reset', text: 'Resetezi indicatorii la valorile implicite?', okLabel: 'Resetează' }))) return;
+      await window.FarcasaData.resetIndicators();
+      await renderInd();
+      await renderOv();
+    });
+
+    function openPreview(href, label) {
+      const main = document.getElementById('dash-main');
+      const bar = document.getElementById('preview-bar');
+      const frame = document.getElementById('preview-frame');
+      if (!frame) return;
+      main.style.display = 'none';
+      bar.style.display = 'flex';
+      bar.classList.remove('hidden');
+      document.getElementById('preview-label').textContent = label || 'Previzualizare';
+      frame.style.display = 'block';
+      frame.classList.remove('hidden');
+      frame.src = href;
+    }
+    function closePreview() {
+      const frame = document.getElementById('preview-frame');
+      frame.style.display = 'none';
+      frame.src = 'about:blank';
+      document.getElementById('preview-bar').style.display = 'none';
+      document.getElementById('dash-main').style.display = '';
+    }
+    document.getElementById('preview-back')?.addEventListener('click', closePreview);
+    document.querySelectorAll('.preview-btn').forEach((btn) => {
+      btn.addEventListener('click', () => openPreview(btn.dataset.preview, btn.dataset.label));
+    });
+
+    async function renderEv() {
+      try {
+        const list = (await window.FarcasaEvents.getAll()).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+        $('ev-admin-list').innerHTML = list.map((ev) => `
+          <div class="card p-3 flex flex-wrap gap-2 items-center justify-between">
+            <div class="text-sm">
+              <span class="font-mono text-xs px-2 py-0.5 rounded" style="background:var(--bg-muted)">${ev.date || ''}</span>
+              <strong style="color:var(--text)"> ${ev.title || ''}</strong>
+              <span class="text-xs text-muted"> · ${ev.type || ''} · ${ev.desc || ''}</span>
+            </div>
+            <button type="button" class="btn-outline text-xs py-1 px-2" data-del="${ev.id}">Șterge</button>
+          </div>`).join('') || '<p class="text-muted text-sm">Gol</p>';
+        document.querySelectorAll('[data-del]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            await window.FarcasaEvents.remove(isNaN(+btn.dataset.del) ? btn.dataset.del : +btn.dataset.del);
+            await renderEv();
+            await renderOv();
+          });
+        });
+      } catch (e) { showErr(e); }
+    }
+
+    $('ev-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const fd = new FormData(this);
+      try {
+        await window.FarcasaEvents.add({
+          title: fd.get('title'),
+          date: fd.get('date'),
+          desc: fd.get('desc'),
+          type: fd.get('type')
+        });
+        this.reset();
+        await renderEv();
+        await renderOv();
+      } catch (err) { showErr(err); }
+    });
+    $('ev-reset').addEventListener('click', async () => {
+      if (!(await fyAsk({ title: 'Reset', text: 'Resetezi evenimentele la lista implicită?', okLabel: 'Resetează' }))) return;
+      await window.FarcasaEvents.reset();
+      await renderEv();
+      await renderOv();
+    });
+
+    async function renderFb() {
+      try {
+        const list = await window.FarcasaData.getFeedbacks();
+        if (!list.length) {
+          $('fb-list').innerHTML = '';
+          $('fb-empty').classList.remove('hidden');
+          return;
+        }
+        $('fb-empty').classList.add('hidden');
+        $('fb-list').innerHTML = list.map((f) => `
+          <div class="card p-4 text-sm">
+            <div class="flex justify-between mb-1">
+              <strong style="color:var(--text)">${f.name || 'Anonim'}</strong>
+              <span class="text-xs text-muted">${f.date ? new Date(f.date).toLocaleString('ro-RO') : ''}</span>
+            </div>
+            <p><span class="text-muted">Activitate:</span> ${f.activity || '—'}</p>
+            <p><span class="text-muted">Învățat:</span> ${f.learned || '—'} · <span class="text-muted">Notă:</span> ${f.rating || '—'}/5</p>
+            <p class="text-muted">${f.what || ''} ${f.suggestions ? ' | ' + f.suggestions : ''}</p>
+          </div>`).join('');
+      } catch (e) { showErr(e); }
+    }
+    $('clear-fb').addEventListener('click', async () => {
+      if (!(await fyAsk({ title: 'Șterge', text: 'Ștergi toate feedback-urile?', okLabel: 'Șterge' }))) return;
+      await window.FarcasaData.clearFeedbacks();
+      await renderFb();
+      await renderOv();
+    });
+
+    async function renderUsers() {
+      const body = $('users-body');
+      const empty = $('users-empty');
+      if (!window.FarcasaAuth.isSuperAdmin || !window.FarcasaAuth.isSuperAdmin()) {
+        body.innerHTML = '<tr><td colspan="4">Doar super-admin (budeadanielm@gmail.com) poate gestiona rolurile.</td></tr>';
+        return;
+      }
+      try {
+        const rows = await window.FarcasaAuth.listUsers();
+        if (!rows.length) {
+          body.innerHTML = '';
+          empty.classList.remove('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        const defs = window.FARCASA_ROLES || [];
+        body.innerHTML = rows.map((u, i) => {
+          const id = u.id != null ? u.id : (i + 1);
+          let created = '—';
+          if ((u.email || '').toLowerCase() === 'budeadanielm@gmail.com' && !u.createdAt) created = 'cont inițial';
+          if (u.createdAt) {
+            if (u.createdAt.toDate) created = u.createdAt.toDate().toLocaleString('ro-RO');
+            else if (u.createdAt.seconds) created = new Date(u.createdAt.seconds * 1000).toLocaleString('ro-RO');
+            else created = String(u.createdAt);
+          }
+          const roleSet = new Set(u.roles || []);
+          if (u.memberInCoordination) roleSet.add('conducere');
+          const checks = defs.map((r) => {
+            const on = roleSet.has(r.id) ? 'checked' : '';
+            const swatch = r.chatColor
+              ? `<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${r.chatColor};border:1px solid var(--border);margin-right:4px"></span>`
+              : `<span style="display:inline-block;width:10px;height:10px;margin-right:4px;border:1px dashed var(--border)"></span>`;
+            return `<label class="inline-flex items-center gap-1 mr-2 mb-1 text-xs cursor-pointer" style="color:var(--text)">
+              <input type="checkbox" data-role-uid="${u.uid}" data-role-id="${r.id}" ${on}>
+              ${swatch}${r.label}
+            </label>`;
+          }).join('');
+          return `<tr>
+            <td style="color:var(--teal);font-weight:700">${id}</td>
+            <td>
+              <div class="flex items-center gap-2">
+                <span class="avatar-sm" style="width:2rem;height:2rem;font-size:0.7rem;background:${window.FarcasaForum.chatColorFor(u)};overflow:hidden;color:#fff">${u.photo ? `<img src="${u.photo}" alt="" style="width:100%;height:100%;object-fit:cover">` : (u.displayName || '?').trim().split(/\s+/).slice(0,2).map(s => s[0]).join('').toUpperCase()}</span>
+                <div>
+                  <div style="color:var(--text);font-weight:600">${u.displayName || '—'}</div>
+                  <div class="text-xs">${u.email || '—'}</div>
+                  <div class="text-xs font-mono text-muted">${u.uid || ''}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="flex flex-wrap" style="max-width:440px">${checks}</div>
+              <button type="button" class="btn-primary text-xs mt-2 py-1" data-save-roles="${u.uid}">Salvează roluri</button>
+              <button type="button" class="btn-outline text-xs mt-2 py-1 ml-2" data-ban="${u.uid}" data-banned="${u.banned ? 1 : 0}">${u.banned ? 'Unban' : 'Ban'}</button>
+            </td>
+            <td class="text-xs text-muted">${created}</td>
+          </tr>`;
+        }).join('');
+        body.querySelectorAll('[data-ban]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            try {
+              const banning = btn.dataset.banned !== '1';
+              let reason = '';
+              if (banning) {
+                reason = await fyAsk({ title: 'Motiv ban', text: 'De ce ban-ezi acest cont?', prompt: true, okLabel: 'Banează' });
+                if (!reason) return;
+              }
+              await window.FarcasaAuth.setBanned(btn.dataset.ban, banning, reason);
+              await renderUsers();
+            } catch (e) { showErr(e); }
+          });
+        });
+        body.querySelectorAll('[data-save-roles]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.dataset.saveRoles;
+            const roles = [];
+            body.querySelectorAll(`input[data-role-uid="${uid}"]`).forEach((cb) => {
+              if (cb.checked) roles.push(cb.dataset.roleId);
+            });
+            try {
+              await window.FarcasaForum.setUserRoles(uid, roles);
+              btn.textContent = 'Salvat';
+              setTimeout(() => { btn.textContent = 'Salvează roluri'; }, 1200);
+            } catch (e) { showErr(e); }
+          });
+        });
+      } catch (e) { showErr(e); }
+    }
+
+    async function renderMessages() {
+      try {
+        const list = await window.FarcasaInbox.list();
+        if (!list.length) {
+          $('msg-list').innerHTML = '';
+          $('msg-empty').classList.remove('hidden');
+          return;
+        }
+        $('msg-empty').classList.add('hidden');
+        $('msg-list').innerHTML = list.map((m) => `
+          <div class="card p-4 text-sm">
+            <div class="flex justify-between gap-2 mb-1">
+              <strong style="color:var(--text)">${m.name || '—'} · ${m.email || ''}</strong>
+              <span class="text-xs text-muted">${m.date ? new Date(m.date).toLocaleString('ro-RO') : ''}</span>
+            </div>
+            <p class="text-xs text-muted mb-1">${m.dept || ''}</p>
+            <p style="color:var(--text)">${(m.message || '').replace(/</g,'<')}</p>
+            <button type="button" class="btn-outline text-xs mt-2 py-1" data-del-msg="${m.id}">Șterge</button>
+          </div>`).join('');
+        document.querySelectorAll('[data-del-msg]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            await window.FarcasaInbox.remove(btn.dataset.delMsg);
+            await renderMessages();
+          });
+        });
+      } catch (e) { showErr(e); }
+    }
+    $('msg-refresh').addEventListener('click', () => renderMessages());
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = () => { img.src = reader.result; };
+        reader.onerror = reject;
+        img.onload = () => {
+          const max = 900;
+          let w = img.width, h = img.height;
+          if (w > max || h > max) {
+            const s = Math.min(max / w, max / h);
+            w = Math.round(w * s); h = Math.round(h * s);
+          }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', 0.72));
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function renderPosts() {
+      try {
+        const list = await window.FarcasaPosts.list();
+        $('post-list').innerHTML = list.map((p) => `
+          <div class="card p-4 text-sm">
+            <div class="flex justify-between gap-2">
+              <strong style="color:var(--text)">${p.title || ''}</strong>
+              <span class="text-xs text-muted">${p.date ? new Date(p.date).toLocaleString('ro-RO') : ''}</span>
+            </div>
+            <p class="mt-1" style="color:var(--text)">${(p.text || '').replace(/</g,'<')}</p>
+            ${p.link ? `<a href="${p.link}" target="_blank" rel="noopener" class="text-xs" style="color:var(--teal)">${p.link}</a>` : ''}
+            ${p.image ? `<img src="${p.image}" alt="" class="mt-2 max-h-40 rounded-lg object-cover">` : ''}
+            <button type="button" class="btn-outline text-xs mt-2 py-1" data-del-post="${p.id}">Șterge</button>
+          </div>`).join('') || '<p class="text-muted text-sm">Nicio postare.</p>';
+        document.querySelectorAll('[data-del-post]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            await window.FarcasaPosts.remove(btn.dataset.delPost);
+            await renderPosts();
+          });
+        });
+      } catch (e) { showErr(e); }
+    }
+    $('post-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const fd = new FormData(this);
+      const file = this.image.files && this.image.files[0];
+      let image = '';
+      try {
+        if (file) image = await fileToDataUrl(file);
+        if (image.length > 700000) throw new Error('Poza e prea mare și după comprimare. Alege una mai mică.');
+        await window.FarcasaPosts.add({
+          title: fd.get('title'),
+          text: fd.get('text'),
+          link: fd.get('link'),
+          image
+        });
+        this.reset();
+        await renderPosts();
+      } catch (err) { showErr(err); }
+    });
+
+
+
+    let ticketUnsub = null;
+    function openTicketChat(id, meta) {
+      const box = document.getElementById('ticket-chat');
+      box.classList.remove('hidden');
+      box.dataset.id = id;
+      const status = (meta && meta.status) || box.dataset.status || '';
+      box.dataset.status = status;
+      const isClosed = status === 'resolved' || status === 'rejected';
+      const form = document.getElementById('admin-ticket-form');
+      if (form) form.style.display = isClosed ? 'none' : 'flex';
+      const note = document.getElementById('ticket-chat-closed');
+      if (note) {
+        note.classList.toggle('hidden', !isClosed);
+        note.textContent = isClosed ? ('Conversație închisă. Soluționat de ' + ((meta && meta.closedBy) || '—') + '. Decizie: ' + ((meta && meta.decision) || status) + '.') : '';
+      }
+      const title = document.getElementById('ticket-chat-title');
+      if (title) title.textContent = isClosed ? 'Conversație închisă' : 'Conversație tichet';
+      if (ticketUnsub) ticketUnsub();
+      ticketUnsub = window.FarcasaTickets.listen(id, (msgs) => {
+        const log = document.getElementById('ticket-chat-log');
+        log.innerHTML = msgs.map(m => `<p class="text-sm"><strong>${m.authorName || ''}:</strong> ${(m.text || '').replace(/</g,'<')} ${m.image ? `<img src="${m.image}" class="max-h-28 mt-1 rounded">` : ''}</p>`).join('') || '<p class="text-sm text-muted">Niciun mesaj.</p>';
+        log.scrollTop = log.scrollHeight;
+      });
+    }
+    async function renderTickets() {
+      try {
+        const list = await window.FarcasaTickets.list();
+        const closed = (s) => s === 'resolved' || s === 'rejected';
+        $('ticket-list').innerHTML = list.map((tk) => `
+          <div class="card p-4 text-sm">
+            <div class="flex justify-between"><strong style="color:var(--text)">#${tk.number || tk.id} · ${tk.name || tk.email || tk.uid}</strong><span class="text-xs">${tk.status || ''}</span></div>
+            <p class="text-xs text-muted">${tk.email || ''} · handler: ${tk.handlerEmail || '—'} · motiv ban: ${tk.banReason || '—'}</p>
+            ${closed(tk.status) ? `<div class="mt-2 p-3 rounded-lg text-sm" style="background:var(--bg-muted)">
+              <div>Soluționat de <strong>${tk.closedBy || '—'}</strong></div>
+              <div class="mt-1">Decizie: <strong>${tk.decision || tk.status}</strong></div>
+              <div class="mt-1">Motiv: ${tk.decisionReason || '—'}</div>
+            </div>` : `<p class="mt-1">${(tk.text || '').replace(/</g,'<')}</p>`}
+            <div class="flex flex-wrap gap-2 mt-2">
+              <button type="button" class="btn-ghost text-xs py-1" data-open="${tk.id}" data-status="${tk.status || ''}" data-closedby="${tk.closedBy || ''}" data-decision="${tk.decision || ''}">${closed(tk.status) ? 'Revizuiește' : 'Conversație'}</button>
+              ${tk.status === 'pending' ? `<button type="button" class="btn-primary text-xs py-1" data-take="${tk.id}">Preia tichet</button>` : ''}
+              ${!closed(tk.status) ? `<button type="button" class="btn-primary text-xs py-1" data-solve="${tk.id}" data-uid="${tk.uid}">Soluționează</button>
+              <button type="button" class="btn-outline text-xs py-1" data-close="${tk.id}">Respinge</button>` : `<button type="button" class="btn-outline text-xs py-1" data-reopen="${tk.id}">Redeschide</button>`}
+              <button type="button" class="btn-outline text-xs py-1" data-del="${tk.id}">Șterge tichet</button>
+            </div>
+          </div>`).join('') || '<p class="text-muted text-sm">Niciun tichet.</p>';
+        document.getElementById('clear-tickets').classList.toggle('hidden', !window.FarcasaAuth.isSuperAdmin());
+        document.querySelectorAll('[data-take]').forEach((btn) => btn.addEventListener('click', async () => { await window.FarcasaTickets.take(btn.dataset.take); await renderTickets(); }));
+        document.querySelectorAll('[data-open]').forEach((btn) => btn.addEventListener('click', () => openTicketChat(btn.dataset.open)));
+        document.querySelectorAll('[data-solve]').forEach((btn) => btn.addEventListener('click', async () => {
+          const box = document.getElementById('solve-box');
+          box.classList.remove('hidden');
+          box.dataset.uid = btn.dataset.uid;
+          box.dataset.id = btn.dataset.solve;
+          document.getElementById('solve-reason').value = '';
+          document.getElementById('solve-choice').textContent = 'unban';
+        }));
+        document.querySelectorAll('[data-close]').forEach((btn) => btn.addEventListener('click', async () => {
+          const reason = await fyAsk({ title: 'Respinge tichet', text: 'Motivul respingerii, fără conversație.', prompt: true, okLabel: 'Respinge' });
+          if (!reason) return;
+          await window.FarcasaTickets.setStatus(btn.dataset.close, 'rejected', { decision: 'respins', decisionReason: reason });
+          await renderTickets();
+        }));
+        document.querySelectorAll('[data-reopen]').forEach((btn) => btn.addEventListener('click', async () => {
+          await window.FarcasaTickets.setStatus(btn.dataset.reopen, 'in_progress', { decision: '', decisionReason: '' });
+          await renderTickets();
+        }));
+      } catch (e) { showErr(e); }
+    }
+
+    $('users-refresh').addEventListener('click', () => renderUsers());
+    document.getElementById('admin-ticket-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('ticket-chat').dataset.id;
+      try {
+        await window.FarcasaTickets.send(id, document.getElementById('admin-ticket-text').innerText, '');
+        document.getElementById('admin-ticket-text').innerText = '';
+      } catch (err) { showErr(err); }
+    });
+    document.getElementById('tab-tickets').addEventListener('click', async (e) => {
+      if (e.target.id === 'reload-tickets') {
+        e.preventDefault();
+        await renderTickets();
+        return;
+      }
+      if (e.target.id === 'clear-tickets') {
+        e.preventDefault();
+        const ok = await fyAsk({ title: 'Șterge tichetele', text: 'Sigur ștergi toate tichetele și conversațiile? Nu se pot recupera.', okLabel: 'Da, șterge', cancelLabel: 'Nu' });
+        if (!ok) return;
+        try {
+          await window.FarcasaTickets.clearAll();
+          await renderTickets();
+          await fyAsk({ title: 'Gata', text: 'Tichetele au fost șterse.', alert: true });
+        } catch (err) { showErr(err); }
+      }
+      if (e.target.id === 'solve-unban' || e.target.id === 'solve-ban') {
+        document.getElementById('solve-choice').textContent = e.target.id === 'solve-ban' ? 'ban' : 'unban';
+      }
+      if (e.target.id === 'solve-cancel') document.getElementById('solve-box').classList.add('hidden');
+      const del = e.target.closest('[data-del]');
+      if (del && del.dataset.del) {
+        const ok = await fyAsk({ title: 'Șterge tichet', text: 'Tichetul dispare și din dashboard, și la user. Numerele continuă.', okLabel: 'Da, șterge', cancelLabel: 'Nu' });
+        if (!ok) return;
+        try {
+          await window.FarcasaTickets.remove(del.dataset.del);
+          await renderTickets();
+        } catch (err) { showErr(err); }
+        return;
+      }
+      if (e.target.id === 'solve-save') {
+        const box = document.getElementById('solve-box');
+        const choice = document.getElementById('solve-choice').textContent;
+        const reason = document.getElementById('solve-reason').value.trim();
+        if (!reason) { showErr(new Error('Scrie motivul.')); return; }
+        await window.FarcasaAuth.setBanned(box.dataset.uid, choice === 'ban', choice === 'ban' ? reason : '');
+        await window.FarcasaTickets.setStatus(box.dataset.id, 'resolved', { decision: choice, decisionReason: reason });
+        box.classList.add('hidden');
+        const chat = document.getElementById('ticket-chat');
+        if (chat && chat.dataset.id === box.dataset.id) openTicketChat(box.dataset.id, { status: 'resolved', closedBy: 'tu', decision: choice });
+        await renderTickets();
+      }
+    });
+
+    $('export-json').addEventListener('click', async () => {
+      const payload = {
+        indicators: await window.FarcasaData.getIndicators(),
+        events: await window.FarcasaEvents.getAll(),
+        feedbacks: await window.FarcasaData.getFeedbacks(),
+        exportedAt: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'farcasa-eyv-data.json';
+      a.click();
+    });
+    $('import-json').addEventListener('change', function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (data.indicators) await window.FarcasaData.saveIndicators(data.indicators);
+          if (data.events) await window.FarcasaEvents.save(data.events);
+          await fyAsk({ title: 'Gata', text: 'Importul a reușit.', alert: true });
+          await renderOv();
+        } catch (e) { showErr(e); }
+      };
+      reader.readAsText(file);
+    });
+    $('wipe-local').addEventListener('click', async () => {
+      if (!(await fyAsk({ title: 'Wipe local', text: 'Ștergi cache-ul local din browser?', okLabel: 'Șterge' }))) return;
+      localStorage.removeItem('farcasa_indicators_v1');
+      localStorage.removeItem('farcasa_events_v1');
+      localStorage.removeItem('farcasa_feedback_v1');
+      await fyAsk({ title: 'Gata', text: 'Cache-ul local a fost șters.', alert: true });
+      renderOv();
+    });
+
+    await renderOv();
+    setTab('overview');
+  })();
+  </script>
+</body>
+</html>

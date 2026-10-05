@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Firebase + GitHub Pages – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans antialiased">
+  <header class="site-header">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html"><img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 w-auto object-contain"></a>
+      <div class="flex gap-2">
+        <a href="https://www.instagram.com/tineri.farcasa/" target="_blank" rel="noopener" class="social-link" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.facebook.com/share/1CbVL5u2SM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="social-link" title="Facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+        <a href="login.html" class="btn-primary text-sm py-2">Login</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-12 space-y-8">
+    <div>
+      <h1 class="text-3xl font-bold mb-2" style="color:var(--text)">Bază de date + Login pe GitHub Pages</h1>
+      <p class="text-muted">GitHub Pages servește doar fișiere statice (HTML/JS). Nu poți rula MySQL/PHP pe GitHub. Soluția: <strong style="color:var(--text)">Firebase</strong> (Auth + Firestore) – gratuit, cloud, accesibil de oriunde.</p>
+    </div>
+
+    <div class="card p-6 space-y-3" style="color:var(--text-muted)">
+      <h2 class="font-bold text-lg" style="color:var(--text)">1. Creează proiect Firebase</h2>
+      <ol class="list-decimal pl-5 space-y-2 text-sm">
+        <li>Intră pe <a href="https://console.firebase.google.com/" target="_blank" rel="noopener" style="color:var(--teal)">console.firebase.google.com</a> cu un cont Google.</li>
+        <li><strong style="color:var(--text)">Add project</strong> → nume ex. <code>farcasa-eyv</code> → continuă (Analytics opțional).</li>
+        <li>În proiect: ⚙️ Project settings → <strong style="color:var(--text)">Your apps</strong> → iconița Web <code>&lt;/&gt;</code> → înregistrează app (ex. farcasa-web).</li>
+        <li>Copiază obiectul <code>firebaseConfig</code> (apiKey, authDomain, projectId, …).</li>
+      </ol>
+    </div>
+
+    <div class="card p-6 space-y-3" style="color:var(--text-muted)">
+      <h2 class="font-bold text-lg" style="color:var(--text)">2. Activează Login (Email/Password)</h2>
+      <ol class="list-decimal pl-5 space-y-2 text-sm">
+        <li>Meniu <strong style="color:var(--text)">Build → Authentication → Get started</strong>.</li>
+        <li>Tab <strong style="color:var(--text)">Sign-in method</strong> → Email/Password → Enable → Save.</li>
+      </ol>
+    </div>
+
+    <div class="card p-6 space-y-3" style="color:var(--text-muted)">
+      <h2 class="font-bold text-lg" style="color:var(--text)">3. Creează baza Firestore</h2>
+      <ol class="list-decimal pl-5 space-y-2 text-sm">
+        <li><strong style="color:var(--text)">Build → Firestore Database → Create database</strong>.</li>
+        <li>Alege locație (ex. <code>europe-west</code>) → Start in <strong style="color:var(--text)">production mode</strong>.</li>
+        <li>Tab <strong style="color:var(--text)">Rules</strong> → lipește regulile de mai jos → Publish.</li>
+      </ol>
+      <pre class="text-xs p-4 rounded-xl overflow-x-auto" style="background:var(--bg-muted);color:var(--text)">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /meta/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /events/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /feedbacks/{id} {
+      allow read: if request.auth != null;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if false;
+    }
+    match /channels/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /channels/{id}/messages/{mid} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+    match /joinRequests/{id} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+  }
+}</pre>
+      <p class="text-xs">Public: citire indicatori + evenimente. Oricine poate trimite feedback. Doar userii logați modifică datele admin.</p>
+    </div>
+
+    <div class="card p-6 space-y-3" style="color:var(--text-muted)">
+      <h2 class="font-bold text-lg" style="color:var(--text)">4. Completează config în site</h2>
+      <ol class="list-decimal pl-5 space-y-2 text-sm">
+        <li>Deschide fișierul <code style="color:var(--text)">js/firebase-config.js</code>.</li>
+        <li>Lipește valorile din Firebase (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId).</li>
+        <li>În <code>ADMIN_EMAILS</code> pune emailurile care au acces la Dashboard, ex. <code>'maria@gmail.com'</code>.</li>
+        <li>Salvează și reîncarcă site-ul. Badge-ul de pe Login ar trebui să arate <strong style="color:var(--text)">Cloud DB</strong>.</li>
+      </ol>
+    </div>
+
+    <div class="card p-6 space-y-3" style="color:var(--text-muted)">
+      <h2 class="font-bold text-lg" style="color:var(--text)">5. Publică pe GitHub Pages</h2>
+      <ol class="list-decimal pl-5 space-y-2 text-sm">
+        <li>Creează un repo GitHub (public), urcă tot folderul <code>farcasa-eyv</code> (conținutul, cu index.html la rădăcină).</li>
+        <li>Settings → Pages → Source: <strong style="color:var(--text)">Deploy from a branch</strong> → branch <code>main</code> / folder <code>/</code> → Save.</li>
+        <li>În 1–2 minute site-ul e la <code>https://UTILIZATOR.github.io/NUME-REPO/</code>.</li>
+        <li>În Firebase → Authentication → Settings → <strong style="color:var(--text)">Authorized domains</strong> → Add domain: <code>UTILIZATOR.github.io</code>.</li>
+      </ol>
+    </div>
+
+    <div class="card p-6 space-y-2 card-pale-yellow">
+      <h2 class="font-bold" style="color:var(--text)">Ce se salvează în cloud</h2>
+      <ul class="text-sm list-disc pl-5" style="color:var(--text-muted)">
+        <li><code>meta/indicators</code> – cei 10 indicatori</li>
+        <li><code>events</code> – calendar</li>
+        <li><code>feedbacks</code> – feedback-uri</li>
+        <li><code>users</code> – profil la sign up</li>
+      </ul>
+      <p class="text-sm" style="color:var(--text-muted)">Până configurezi Firebase, totul merge local (localStorage) cu admin / farcasa2027.</p>
+    </div>
+
+    <p class="text-sm text-muted">După setup: <a href="login.html" style="color:var(--teal)">login.html</a> → Sign up cu emailul din ADMIN_EMAILS → Dashboard.</p>
+  </main>
+
+  <footer class="site-footer mt-12">
+    <div class="max-w-6xl mx-auto"><p>Fărcașa EYV · Setup Firebase</p></div>
+  </footer>
+  <script src="js/main.js"></script>
+</body>
+</html>

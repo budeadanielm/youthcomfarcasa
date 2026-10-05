@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitorizare & Evaluare – Fărcașa EYV 2027</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { eyv: { blue:'#0369A1',teal:'#0F766E',green:'#047857',red:'#DC2626',yellow:'#EAB308',cream:'#F0FDFA',dark:'#0F172A',orange:'#0F766E' } }, fontFamily: { sans: ['Inter','system-ui','sans-serif'] } } } }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans antialiased">
+  <header class="site-header">
+    <div class="header-inner mx-auto px-4 py-3 flex items-center justify-between gap-3 w-full max-w-none">
+      <a href="index.html" class="flex items-center gap-3 shrink-0">
+        <img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 md:h-16 w-auto object-contain">
+      </a>
+      <nav class="hidden lg:flex items-center gap-5 text-sm font-medium">
+        <a href="index.html" style="color:var(--text)">Acasă</a>
+        <a href="despre.html" style="color:var(--text)">Despre</a>
+        <a href="postari.html" style="color:var(--text)">Postări</a>
+        <a href="forum.html" style="color:var(--text)">Forum</a>
+        <a href="program.html" style="color:var(--text)">Program EYV</a>
+        <a href="evenimente.html" style="color:var(--text)">Evenimente</a>
+        <a href="monitorizare.html" style="color:var(--teal);border-bottom:2px solid var(--teal);padding-bottom:2px">Monitorizare</a>
+        <a href="feedback.html" style="color:var(--text)">Feedback</a>
+        <a href="impact.html" style="color:var(--text)">Impact</a>
+        <a href="contact.html" style="color:var(--text)">Contact</a>
+        <a href="login.html" data-guest-only class="font-semibold" style="color:var(--red)">Cont</a>
+        <a href="dashboard.html" data-admin-only class="hidden font-semibold" style="color:var(--red)">Dashboard</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="https://www.instagram.com/tineri.farcasa/" target="_blank" rel="noopener" class="social-link" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.facebook.com/share/1CbVL5u2SM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="social-link" title="Facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+        <button type="button" data-lang-btn class="btn-yellow text-xs px-2.5 py-1">EN</button>
+        <button id="mobile-menu-btn" class="lg:hidden btn-ghost">☰</button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden lg:hidden border-t px-4 py-3 space-y-1 text-sm" style="border-color:var(--border);background:var(--bg-elevated)">
+      <a href="index.html" class="block py-2" style="color:var(--text)">Acasă</a>
+      <a href="despre.html" class="block py-2" style="color:var(--text)">Despre</a>
+      <a href="evenimente.html" class="block py-2" style="color:var(--text)">Evenimente</a>
+      <a href="monitorizare.html" class="block py-2 font-medium" style="color:var(--teal)">Monitorizare</a>
+      <a href="feedback.html" class="block py-2" style="color:var(--text)">Feedback</a>
+      <a href="impact.html" class="block py-2" style="color:var(--text)">Impact</a>
+      <a href="contact.html" class="block py-2" style="color:var(--text)">Contact</a>
+      <a href="login.html" data-guest-only class="block py-2 font-semibold" style="color:var(--red)">Cont</a>
+      <a href="dashboard.html" data-admin-only class="hidden block py-2 font-semibold" style="color:var(--red)">Dashboard</a>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <h1 class="text-3xl md:text-4xl font-bold mb-2" style="color:var(--text)">
+      <span class="lang-ro">Monitorizare și evaluare</span>
+      <span class="lang-en hidden">Monitoring and evaluation</span>
+    </h1>
+    <p class="text-muted mb-8">
+      <span class="lang-ro">Cum urmărim progresul planului de activități pe parcursul mandatului 2027</span>
+      <span class="lang-en hidden">How we track progress throughout the 2027 mandate</span>
+    </p>
+
+    <!-- Panel 1: text -->
+    <div id="panel-text" class="mon-panel active">
+      <div class="card p-6 md:p-8 space-y-4 leading-relaxed" style="color:var(--text-muted)">
+        <div class="lang-ro space-y-4">
+          <p>Pe parcursul anului 2027 vom monitoriza și evalua implementarea planului de activități printr-un sistem simplu, transparent și orientat spre învățare. Scopul nu este doar să „bifeăm” indicatori, ci să știm în timp real dacă suntem pe drumul cel bun și să ne adaptăm rapid pe baza feedback-ului tinerilor și a partenerilor.</p>
+          <h3 class="font-bold text-lg" style="color:var(--text)">Ce facem concret</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong style="color:var(--text)">Întâlniri lunare</strong> ale grupului de inițiativă – minute, status, riscuri și oportunități.</li>
+            <li><strong style="color:var(--text)">Liste de prezență</strong> la fiecare eveniment.</li>
+            <li><strong style="color:var(--text)">Chestionare de feedback</strong> la finalul activităților.</li>
+            <li><strong style="color:var(--text)">Centralizator oficial EYV</strong> pentru raportare.</li>
+            <li><strong style="color:var(--text)">Monitorizare media</strong> – presă și social media.</li>
+            <li><strong style="color:var(--text)">Raport intermediar</strong> (30 iunie 2027) și <strong style="color:var(--text)">raport final</strong> (31 decembrie 2027).</li>
+          </ul>
+          <h3 class="font-bold text-lg" style="color:var(--text)">Cine e responsabil</h3>
+          <p>Coordonarea monitorizării revine unui membru dedicat al grupului (rol M&E), cu sprijinul echipei. Datele se colectează de organizatorii activităților și se centralizează lunar.</p>
+          <h3 class="font-bold text-lg" style="color:var(--text)">Frecvență</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Lunar: review intern</li>
+            <li>Trimestrial: analiză și ajustări</li>
+            <li>30 iunie 2027: evaluare intermediară</li>
+            <li>31 decembrie 2027: evaluare finală</li>
+          </ul>
+          <h3 class="font-bold text-lg" style="color:var(--text)">Adaptare pe feedback</h3>
+          <p>Feedback-ul din chestionare și dialoguri este analizat la fiecare review. Ajustăm formatul, data sau partenerii când e nevoie. Succesul se măsoară prin ținte numerice, satisfacție și continuitate după 2027.</p>
+        </div>
+        <div class="lang-en hidden space-y-4">
+          <p>Throughout 2027 we will monitor and evaluate the activity plan through a simple, transparent, learning-oriented system.</p>
+          <h3 class="font-bold text-lg" style="color:var(--text)">What we do</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong style="color:var(--text)">Monthly meetings</strong> of the initiative group.</li>
+            <li><strong style="color:var(--text)">Attendance lists</strong> at every event.</li>
+            <li><strong style="color:var(--text)">Feedback questionnaires</strong> after activities.</li>
+            <li><strong style="color:var(--text)">Official EYV centraliser</strong> for reporting.</li>
+            <li><strong style="color:var(--text)">Media monitoring</strong>.</li>
+            <li><strong style="color:var(--text)">Mid-term</strong> (30 June 2027) and <strong style="color:var(--text)">final</strong> (31 December 2027) reports.</li>
+          </ul>
+          <h3 class="font-bold text-lg" style="color:var(--text)">Responsibility & frequency</h3>
+          <p>M&E is coordinated by a dedicated group member. Monthly internal reviews, quarterly analysis, mid-term and final evaluations.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel 2: indicators -->
+    <div id="panel-ind" class="mon-panel">
+      <h2 class="text-xl font-bold mb-4" style="color:var(--text)">
+        <span class="lang-ro">Indicatori – baseline, intermediar, final</span>
+        <span class="lang-en hidden">Indicators – baseline, mid-term, final</span>
+      </h2>
+      <div class="table-wrap card overflow-hidden mb-4">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th><span class="lang-ro">Indicator</span><span class="lang-en hidden">Indicator</span></th>
+              <th class="text-center"><span class="lang-ro">Inițial</span><span class="lang-en hidden">Initial</span></th>
+              <th class="text-center"><span class="lang-ro">Intermediar</span><span class="lang-en hidden">Mid</span></th>
+              <th class="text-center"><span class="lang-ro">Final</span><span class="lang-en hidden">Final</span></th>
+              <th><span class="lang-ro">Cum măsurăm</span><span class="lang-en hidden">How measured</span></th>
+            </tr>
+          </thead>
+          <tbody id="indicators-body"></tbody>
+        </table>
+      </div>
+      <a href="dashboard.html" data-admin-only class="hidden btn-primary text-sm">
+        <span class="lang-ro">Actualizează din Dashboard (Admin)</span>
+        <span class="lang-en hidden">Update from Dashboard (Admin)</span>
+      </a>
+    </div>
+
+    <!-- Nav arrows -->
+    <div class="flex items-center justify-center gap-6 mt-10">
+      <button type="button" class="mon-nav-dot" id="nav-prev" title="Text">←</button>
+      <div class="flex gap-2">
+        <button type="button" class="mon-nav-dot active" data-panel="text" title="Metodologie">1</button>
+        <button type="button" class="mon-nav-dot" data-panel="ind" title="Indicatori">2</button>
+      </div>
+      <button type="button" class="mon-nav-dot" id="nav-next" title="Indicatori">→</button>
+    </div>
+    <p class="text-center text-xs text-muted mt-3">
+      <span class="lang-ro">1 = Metodologie · 2 = Indicatori</span>
+      <span class="lang-en hidden">1 = Methodology · 2 = Indicators</span>
+    </p>
+  </main>
+
+  <footer class="site-footer mt-12">
+    <div class="max-w-6xl mx-auto"><p>© 2026–2027 Grup de inițiativă Fărcașa</p></div>
+  </footer>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/indicators.js"></script>
+  <script>
+    (function () {
+      let panel = 'text';
+      function show(p) {
+        panel = p;
+        document.getElementById('panel-text').classList.toggle('active', p === 'text');
+        document.getElementById('panel-ind').classList.toggle('active', p === 'ind');
+        document.querySelectorAll('[data-panel]').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.panel === p);
+        });
+        if (p === 'ind') renderIndicators();
+      }
+      document.querySelectorAll('[data-panel]').forEach(btn => {
+        btn.addEventListener('click', () => show(btn.dataset.panel));
+      });
+      document.getElementById('nav-prev').addEventListener('click', () => show(panel === 'ind' ? 'text' : 'text'));
+      document.getElementById('nav-next').addEventListener('click', () => show(panel === 'text' ? 'ind' : 'ind'));
+
+      async function renderIndicators() {
+        const data = await window.FarcasaData.getIndicators();
+        const lang = localStorage.getItem('farcasa_lang') || 'ro';
+        document.getElementById('indicators-body').innerHTML = data.map(ind => `
+          <tr>
+            <td style="color:var(--teal);font-weight:700">${ind.id}</td>
+            <td>${lang === 'en' ? ind.name_en : ind.name_ro}</td>
+            <td class="text-center">${ind.initial}</td>
+            <td class="text-center" style="color:var(--yellow)">${ind.mid}</td>
+            <td class="text-center font-bold" style="color:var(--red)">${ind.final}</td>
+            <td class="text-xs text-muted">${lang === 'en' ? ind.measure_en : ind.measure_ro}</td>
+          </tr>
+        `).join('');
+      }
+      document.querySelectorAll('[data-lang-btn]').forEach(b => b.addEventListener('click', () => {
+        if (panel === 'ind') setTimeout(renderIndicators, 50);
+      }));
+    })();
+  </script>
+</body>
+</html>

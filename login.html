@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Sign up – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+  <header class="site-header">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html"><img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 w-auto object-contain"></a>
+      <div class="flex gap-2 items-center">
+        <span id="auth-mode-badge" class="text-xs px-2 py-1 rounded-full badge-yellow">…</span>
+        <a href="https://www.instagram.com/tineri.farcasa/" target="_blank" rel="noopener" class="social-link" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.facebook.com/share/1CbVL5u2SM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="social-link" title="Facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+        <a href="index.html" class="btn-ghost text-sm">← Site</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 flex items-center justify-center px-4 py-12">
+    <div class="card p-8 w-full max-w-md">
+      <div class="flex gap-2 mb-6">
+        <button type="button" id="tab-login" class="btn-primary flex-1 text-sm py-2">Login</button>
+        <button type="button" id="tab-signup" class="btn-ghost flex-1 text-sm py-2">Sign up</button>
+      </div>
+
+      <form id="login-form" class="space-y-4">
+        <h1 class="text-xl font-bold text-center" style="color:var(--text)">Autentificare</h1>
+        <div>
+          <label class="block text-sm font-medium mb-1" style="color:var(--text)">Email / user</label>
+          <input type="text" id="login-email" required class="w-full px-4 py-2.5" placeholder="email@exemplu.ro" autocomplete="username">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" style="color:var(--text)">Parolă</label>
+          <input type="password" id="login-pass" required class="w-full px-4 py-2.5" autocomplete="current-password">
+        </div>
+        <p id="login-error" class="hidden text-sm text-center" style="color:var(--red)"></p>
+        <p id="login-ok" class="hidden text-sm text-center" style="color:var(--green)"></p>
+        <button type="submit" class="btn-primary w-full">Login</button>
+        <button type="button" id="reset-pass" class="btn-ghost w-full text-sm">Ai uitat parola? Trimite reset pe email</button>
+      </form>
+
+      <form id="signup-form" class="space-y-4 hidden">
+        <h1 class="text-xl font-bold text-center" style="color:var(--text)">Creare cont</h1>
+        <div>
+          <label class="block text-sm font-medium mb-1" style="color:var(--text)">Nume</label>
+          <input type="text" id="signup-name" class="w-full px-4 py-2.5" placeholder="Numele tău">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" style="color:var(--text)">Email</label>
+          <input type="email" id="signup-email" required class="w-full px-4 py-2.5" autocomplete="email">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" style="color:var(--text)">Parolă (min. 6 caractere)</label>
+          <input type="password" id="signup-pass" required minlength="6" class="w-full px-4 py-2.5" autocomplete="new-password">
+        </div>
+        <p id="signup-error" class="hidden text-sm text-center" style="color:var(--red)"></p>
+        <p id="signup-ok" class="hidden text-sm text-center" style="color:var(--green)">Cont creat! Poți folosi Dashboard.</p>
+        <button type="submit" class="btn-primary w-full">Sign up</button>
+        <button type="button" id="reset-pass-signup" class="btn-ghost w-full text-sm">Ai deja cont? Resetează parola pe email</button>
+      </form>
+
+      <div class="mt-6 p-4 rounded-xl text-xs text-muted" style="background:var(--bg-muted)">
+        <p style="color:var(--text)"><strong>Cont normal:</strong> Login / Sign up funcționează pentru oricine.</p>
+        <p class="mt-1"><strong style="color:var(--text)">Dashboard:</strong> doar pentru adminii din listă.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/main.js"></script>
+  <script>
+    (function () {
+      const mode = window.FarcasaAuth?.mode?.() || 'local';
+      document.getElementById('auth-mode-badge').textContent = mode === 'firebase' ? 'Cloud DB' : 'Local demo';
+
+      function goAfterAuth(user) {
+        if (window.FarcasaAuth.isAdmin(user)) {
+          window.location.href = 'dashboard.html';
+        } else {
+          window.location.href = 'index.html?welcome=1';
+        }
+      }
+
+      // Dacă e deja logat
+      (async function () {
+        if (window.FarcasaAuth?.waitAuth) await window.FarcasaAuth.waitAuth(2500);
+        if (window.FarcasaAuth?.isLoggedIn?.()) {
+          goAfterAuth(window.FarcasaAuth.getUser());
+        }
+      })();
+
+      try {
+        if (new URLSearchParams(location.search).get('tab') === 'signup') {
+          document.getElementById('tab-signup')?.click();
+        }
+      } catch (e) {}
+
+      document.getElementById('tab-login')?.addEventListener('click', () => {
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('signup-form').classList.add('hidden');
+        document.getElementById('tab-login').className = 'btn-primary flex-1 text-sm py-2';
+        document.getElementById('tab-signup').className = 'btn-ghost flex-1 text-sm py-2';
+      });
+      document.getElementById('tab-signup')?.addEventListener('click', () => {
+        document.getElementById('signup-form').classList.remove('hidden');
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('tab-signup').className = 'btn-primary flex-1 text-sm py-2';
+        document.getElementById('tab-login').className = 'btn-ghost flex-1 text-sm py-2';
+      });
+
+      document.getElementById('login-form')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const err = document.getElementById('login-error');
+        err.classList.add('hidden');
+        const btn = this.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Se conectează…'; }
+        try {
+          const user = await window.FarcasaAuth.login(
+            document.getElementById('login-email').value.trim(),
+            document.getElementById('login-pass').value
+          );
+          goAfterAuth(user);
+        } catch (ex) {
+          console.error(ex);
+          let msg = ex.message || 'Autentificare eșuată';
+          if (ex.code === 'auth/invalid-credential' || ex.code === 'auth/wrong-password' || ex.code === 'auth/user-not-found') {
+            msg = 'Email sau parolă greșită.';
+          } else if (ex.code === 'auth/invalid-email') {
+            msg = 'Email invalid.';
+          } else if (ex.code === 'auth/too-many-requests') {
+            msg = 'Prea multe încercări. Așteaptă puțin.';
+          }
+          err.textContent = msg;
+          err.classList.remove('hidden');
+          if (btn) { btn.disabled = false; btn.textContent = 'Login'; }
+        }
+      });
+
+      async function sendReset(email, err, ok, btn) {
+        err.classList.add('hidden');
+        ok.classList.add('hidden');
+        btn.disabled = true;
+        try {
+          await window.FarcasaAuth.resetPassword(email);
+          ok.textContent = 'Ți-am trimis un email de resetare. Verifică și inbox-ul de spam.';
+          ok.classList.remove('hidden');
+        } catch (ex) {
+          let msg = ex.message || 'Nu s-a putut trimite resetul.';
+          if (ex.code === 'auth/user-not-found') msg = 'Nu există cont cu acest email.';
+          if (ex.code === 'auth/invalid-email') msg = 'Email invalid.';
+          if (ex.code === 'auth/too-many-requests') msg = 'Prea multe încercări. Așteaptă puțin.';
+          err.textContent = msg;
+          err.classList.remove('hidden');
+        }
+        btn.disabled = false;
+      }
+      document.getElementById('reset-pass')?.addEventListener('click', () => {
+        sendReset(
+          document.getElementById('login-email').value.trim(),
+          document.getElementById('login-error'),
+          document.getElementById('login-ok'),
+          document.getElementById('reset-pass')
+        );
+      });
+      document.getElementById('reset-pass-signup')?.addEventListener('click', () => {
+        sendReset(
+          document.getElementById('signup-email').value.trim(),
+          document.getElementById('signup-error'),
+          document.getElementById('signup-ok'),
+          document.getElementById('reset-pass-signup')
+        );
+      });
+
+      document.getElementById('signup-form')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const err = document.getElementById('signup-error');
+        const ok = document.getElementById('signup-ok');
+        err.classList.add('hidden');
+        ok.classList.add('hidden');
+        const btn = this.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Se creează…'; }
+        try {
+          if (window.FarcasaAuth.mode() !== 'firebase') {
+            throw new Error('Sign up necesită Firebase configurat (js/firebase-config.js).');
+          }
+          const user = await window.FarcasaAuth.signup(
+            document.getElementById('signup-email').value.trim(),
+            document.getElementById('signup-pass').value,
+            document.getElementById('signup-name').value.trim()
+          );
+          ok.textContent = window.FarcasaAuth.isAdmin(user)
+            ? 'Cont creat! Mergi la Dashboard…'
+            : 'Cont creat! Ești logat (fără acces Dashboard).';
+          ok.classList.remove('hidden');
+          setTimeout(() => goAfterAuth(user), 700);
+        } catch (ex) {
+          console.error(ex);
+          let msg = ex.message || 'Înregistrare eșuată';
+          if (ex.code === 'auth/email-already-in-use') msg = 'Email deja folosit. Folosește Login.';
+          if (ex.code === 'auth/weak-password') msg = 'Parola trebuie să aibă minim 6 caractere.';
+          if (ex.code === 'auth/invalid-email') msg = 'Email invalid.';
+          err.textContent = msg;
+          err.classList.remove('hidden');
+          if (btn) { btn.disabled = false; btn.textContent = 'Sign up'; }
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>

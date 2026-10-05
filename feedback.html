@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback – Fărcașa EYV 2027</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans antialiased">
+  <header class="site-header">
+    <div class="header-inner mx-auto px-4 py-3 flex items-center justify-between gap-3 w-full max-w-none">
+      <a href="index.html"><img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 md:h-16 w-auto object-contain"></a>
+      <nav class="hidden lg:flex items-center gap-5 text-sm font-medium">
+        <a href="index.html" style="color:var(--text)">Acasă</a>
+        <a href="despre.html" style="color:var(--text)">Despre</a>
+        <a href="postari.html" style="color:var(--text)">Postări</a>
+        <a href="forum.html" style="color:var(--text)">Forum</a>
+        <a href="evenimente.html" style="color:var(--text)">Evenimente</a>
+        <a href="monitorizare.html" style="color:var(--text)">Monitorizare</a>
+        <a href="feedback.html" style="color:var(--teal);border-bottom:2px solid var(--teal);padding-bottom:2px">Feedback</a>
+        <a href="impact.html" style="color:var(--text)">Impact</a>
+        <a href="contact.html" style="color:var(--text)">Contact</a>
+        <a href="login.html" data-guest-only class="font-semibold" style="color:var(--red)">Cont</a>
+        <a href="dashboard.html" data-admin-only class="hidden font-semibold" style="color:var(--red)">Dashboard</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="https://www.instagram.com/tineri.farcasa/" target="_blank" rel="noopener" class="social-link" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.facebook.com/share/1CbVL5u2SM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="social-link" title="Facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+        <button type="button" data-lang-btn class="btn-yellow text-xs px-2.5 py-1">EN</button>
+        <button id="mobile-menu-btn" class="lg:hidden btn-ghost">☰</button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden lg:hidden border-t px-4 py-3 space-y-1 text-sm" style="border-color:var(--border);background:var(--bg-elevated)">
+      <a href="index.html" class="block py-2" style="color:var(--text)">Acasă</a>
+      <a href="feedback.html" class="block py-2 font-medium" style="color:var(--teal)">Feedback</a>
+      <a href="login.html" data-guest-only class="block py-2 font-semibold" style="color:var(--red)">Cont</a>
+      <a href="dashboard.html" data-admin-only class="hidden block py-2 font-semibold" style="color:var(--red)">Dashboard</a>
+    </div>
+  </header>
+  <main class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold mb-2" style="color:var(--text)"><span class="lang-ro">Formular de feedback</span><span class="lang-en hidden">Feedback form</span></h1>
+    <p class="text-muted mb-8"><span class="lang-ro">Feedback după activități – ne ajută să știm ce funcționează și ce putem îmbunătăți.</span><span class="lang-en hidden">Post-activity feedback – helps us improve.</span></p>
+    <form id="feedback-form" class="card p-6 space-y-5">
+      <div>
+        <label class="block text-sm font-medium mb-1" style="color:var(--text)"><span class="lang-ro">Nume (opțional)</span><span class="lang-en hidden">Name (optional)</span></label>
+        <input type="text" name="name" class="w-full px-4 py-2.5" placeholder="Anonim">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" style="color:var(--text)"><span class="lang-ro">La ce activitate ai participat?</span><span class="lang-en hidden">Which activity?</span></label>
+        <input type="text" name="activity" required class="w-full px-4 py-2.5">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" style="color:var(--text)"><span class="lang-ro">Ai învățat ceva nou?</span><span class="lang-en hidden">Did you learn something new?</span></label>
+        <select name="learned" required class="w-full px-4 py-2.5">
+          <option value="">—</option>
+          <option value="yes">Da / Yes</option>
+          <option value="no">Nu / No</option>
+          <option value="partial">Parțial / Partially</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" style="color:var(--text)"><span class="lang-ro">Ce ai învățat / ce ți-a plăcut?</span><span class="lang-en hidden">What did you learn / like?</span></label>
+        <textarea name="what" rows="3" class="w-full px-4 py-2.5"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" style="color:var(--text)"><span class="lang-ro">Sugestii</span><span class="lang-en hidden">Suggestions</span></label>
+        <textarea name="suggestions" rows="2" class="w-full px-4 py-2.5"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" style="color:var(--text)"><span class="lang-ro">Notă (1–5)</span><span class="lang-en hidden">Rating (1–5)</span></label>
+        <select name="rating" class="w-full px-4 py-2.5">
+          <option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary w-full"><span class="lang-ro">Trimite feedback</span><span class="lang-en hidden">Submit</span></button>
+    </form>
+    <div id="feedback-success" class="hidden card p-6 text-center mt-6 card-pale-yellow">
+      <p class="font-semibold" style="color:var(--text)"><span class="lang-ro">Mulțumim! Feedback salvat.</span><span class="lang-en hidden">Thank you! Feedback saved.</span></p>
+    </div>
+  </main>
+  <footer class="site-footer mt-12"><div class="max-w-6xl mx-auto"><p>© 2026–2027 Grup de inițiativă Fărcașa</p></div></footer>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/indicators.js"></script>
+  <script>
+    document.getElementById('feedback-form')?.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const fd = new FormData(this);
+      try {
+        await window.FarcasaData.addFeedback({
+          name: fd.get('name') || 'Anonim', activity: fd.get('activity'), learned: fd.get('learned'),
+          what: fd.get('what'), suggestions: fd.get('suggestions'), rating: fd.get('rating')
+        });
+        this.classList.add('hidden');
+        document.getElementById('feedback-success')?.classList.remove('hidden');
+      } catch (err) {
+        alert('Nu s-a putut salva feedback-ul: ' + (err.message || err));
+      }
+    });
+  </script>
+</body>
+</html>

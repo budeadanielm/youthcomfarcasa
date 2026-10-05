@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /meta/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /events/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /feedbacks/{id} {
+      allow read: if request.auth != null;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if false;
+    }
+    match /channels/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /channels/{id}/messages/{mid} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+    match /messages/{id} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+    match /banTickets/{id} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null;
+    }
+    match /banTickets/{id}/chat/{mid} {
+      allow read, create, delete: if request.auth != null;
+    }
+    match /bannedEmails/{id} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    match /posts/{id} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /joinRequests/{id} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+  }
+}

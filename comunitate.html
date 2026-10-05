@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comunitate – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            eyv: {
+              blue: '#0369A1',
+              teal: '#0F766E',
+              green: '#047857',
+              red: '#DC2626',
+              yellow: '#EAB308',
+              gold: '#CA8A04',
+              cream: '#ECFEFF',
+              dark: '#0F172A',
+              light: '#CFFAFE',
+              orange: '#0F766E',
+              soft: '#F0FDFA',
+              card: '#FFFFFF'
+            }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans bg-eyv-soft text-gray-900 antialiased">
+  <header class="bg-white/95 backdrop-blur sticky top-0 z-50 shadow-md border-b-4 border-eyv-teal">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3 shrink-0">
+        <img src="assets/logo-farcasa.png" alt="Fărcașa – Sat European de Tineret" class="h-14 md:h-16 w-auto object-contain drop-shadow-sm">
+      </a>
+      <nav class="hidden lg:flex items-center gap-5 text-sm font-medium">
+        <a href="index.html" class="hover:text-eyv-teal transition">Acasă</a>
+        <a href="despre.html" class="hover:text-eyv-teal transition">Despre</a>
+        <a href="program.html" class="hover:text-eyv-teal transition">Program EYV</a>
+        <a href="evenimente.html" class="hover:text-eyv-teal transition">Evenimente</a>
+        <a href="monitorizare.html" class="hover:text-eyv-teal transition">Monitorizare</a>
+        <a href="feedback.html" class="hover:text-eyv-teal transition">Feedback</a>
+        <a href="impact.html" class="hover:text-eyv-teal transition">Impact</a>
+        <a href="comunitate.html" class="text-eyv-teal border-b-2 border-eyv-teal pb-0.5">Comunitate</a>
+        <a href="contact.html" class="hover:text-eyv-teal transition">Contact</a>
+        <a href="login.html" class="hover:text-eyv-teal transition font-semibold">Admin</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button data-lang-btn class="text-xs font-semibold px-2.5 py-1 rounded border-2 border-eyv-yellow text-eyv-dark hover:bg-eyv-yellow transition">EN</button>
+        <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg hover:bg-gray-100"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden lg:hidden bg-white border-t px-4 py-3 space-y-1 text-sm">
+      <a href="index.html" class="block py-2">Acasă</a>
+      <a href="despre.html" class="block py-2">Despre</a>
+      <a href="program.html" class="block py-2">Program EYV</a>
+      <a href="evenimente.html" class="block py-2">Evenimente</a>
+      <a href="monitorizare.html" class="block py-2">Monitorizare</a>
+      <a href="feedback.html" class="block py-2">Feedback</a>
+      <a href="impact.html" class="block py-2">Impact</a>
+      <a href="contact.html" class="block py-2">Contact</a>
+      <a href="login.html" class="block py-2 font-semibold">Admin</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold text-eyv-dark mb-2">
+      <span class="lang-ro">Alătură-te comunității</span>
+      <span class="lang-en hidden">Join the community</span>
+    </h1>
+    <p class="text-gray-500 mb-8">
+      <span class="lang-ro">Vrei să te implici în grupul de inițiativă sau să ajuți la activități? Lasă-ne un mesaj.</span>
+      <span class="lang-en hidden">Want to get involved in the initiative group or help with activities? Leave us a message.</span>
+    </p>
+
+    <form id="join-form" class="bg-white rounded-2xl border-2 border-eyv-teal/30 p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1"><span class="lang-ro">Nume</span><span class="lang-en hidden">Name</span></label>
+        <input type="text" name="name" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-eyv-orange outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Email / Telefon</label>
+        <input type="text" name="contact" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-eyv-orange outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1"><span class="lang-ro">Cum vrei să te implici?</span><span class="lang-en hidden">How do you want to get involved?</span></label>
+        <textarea name="message" rows="3" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-eyv-orange outline-none"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-gradient-to-r from-eyv-blue to-eyv-green text-white font-semibold py-3 rounded-xl hover:from-eyv-red hover:to-eyv-red transition">
+        <span class="lang-ro">Trimite</span><span class="lang-en hidden">Send</span>
+      </button>
+    </form>
+    <div id="form-success" class="hidden bg-green-50 border border-green-200 text-green-800 rounded-2xl p-6 text-center mt-6">
+      <p class="font-semibold"><span class="lang-ro">Mulțumim! Te vom contacta în curând.</span><span class="lang-en hidden">Thank you! We will contact you soon.</span></p>
+    </div>
+  </main>
+
+  <footer class="site-footer border-t-4 border-eyv-yellow mt-12">
+    <div class="max-w-6xl mx-auto">
+      <p><span class="lang-ro">© 2026–2027 Grup de inițiativă Fărcașa</span><span class="lang-en hidden">© 2026–2027 Fărcașa Initiative Group</span></p>
+    </div>
+  </footer>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

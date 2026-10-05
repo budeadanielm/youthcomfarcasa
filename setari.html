@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setări cont – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js?v=20261006a"></script>
+</head>
+<body class="font-sans antialiased">
+  <header class="site-header">
+    <div class="header-inner mx-auto px-4 py-3 flex items-center justify-between gap-3 w-full max-w-none">
+      <a href="index.html"><img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 w-auto"></a>
+      <nav class="site-nav hidden lg:flex"></nav>
+      <div class="header-right flex items-center gap-2"></div>
+    </div>
+  </header>
+  <main class="max-w-xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-4" style="color:var(--text)">Setările contului</h1>
+    <form id="set-form" class="card p-5 space-y-4">
+      <div class="flex items-center gap-4">
+        <div id="set-avatar" class="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center font-bold text-white" style="background:#A78BFA">?</div>
+        <label class="text-sm">Poză de profil
+          <input type="file" id="set-file" accept="image/*" class="block mt-1 text-xs">
+        </label>
+      </div>
+      <label class="block text-sm">Nume
+        <input id="set-name" class="w-full px-3 py-2 mt-1" required>
+      </label>
+      <label class="block text-sm">Email
+        <input id="set-email" type="email" class="w-full px-3 py-2 mt-1" required>
+      </label>
+      <label class="block text-sm">Parolă nouă (opțional)
+        <input id="set-pass" type="password" minlength="6" class="w-full px-3 py-2 mt-1" autocomplete="new-password">
+      </label>
+      <label class="block text-sm">Parola actuală (obligatorie dacă schimbi emailul sau parola)
+        <input id="set-current" type="password" class="w-full px-3 py-2 mt-1" autocomplete="current-password">
+      </label>
+      <p id="set-msg" class="text-sm hidden"></p>
+      <button class="btn-primary w-full" type="submit">Salvează</button>
+      <button type="button" id="set-reset" class="btn-ghost w-full text-sm">Trimite reset parolă pe email</button>
+    </form>
+  </main>
+  <script src="js/main.js"></script>
+  <script>
+  (async function () {
+    if (window.FarcasaAuth?.waitAuth) await window.FarcasaAuth.waitAuth(4000);
+    const user = window.FarcasaAuth.getUser();
+    if (!user) { location.href = 'login.html'; return; }
+    let photo = '';
+    const prof = await window.FarcasaForum.getUserProfile(user.uid);
+    document.getElementById('set-name').value = (prof && prof.displayName) || user.displayName || '';
+    document.getElementById('set-email').value = user.email || '';
+    const name0 = (prof && prof.displayName) || user.displayName || user.email || '?';
+    const ini = name0.trim().split(/\s+/).slice(0, 2).map(s => s[0]).join('').toUpperCase();
+    const col = window.FarcasaForum.chatColorFor(prof || { email: user.email }) || '#A78BFA';
+    const av = document.getElementById('set-avatar');
+    function paint() {
+      if (photo) av.innerHTML = '<img src="' + photo + '" alt="" style="width:100%;height:100%;object-fit:cover">';
+      else { av.textContent = ini; av.style.background = col; av.style.color = '#fff'; }
+    }
+    if (prof && prof.photo) photo = prof.photo;
+    paint();
+    document.getElementById('set-file').addEventListener('change', () => {
+      const file = document.getElementById('set-file').files[0];
+      if (!file) return;
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => { img.src = reader.result; };
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        const s = Math.min(256 / img.width, 256 / img.height, 1);
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        photo = c.toDataURL('image/jpeg', 0.72);
+        paint();
+      };
+      reader.readAsDataURL(file);
+    });
+    document.getElementById('set-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('set-msg');
+      msg.classList.remove('hidden');
+      try {
+        await window.FarcasaAuth.updateAccount({
+          displayName: document.getElementById('set-name').value.trim(),
+          email: document.getElementById('set-email').value.trim(),
+          newPassword: document.getElementById('set-pass').value,
+          currentPassword: document.getElementById('set-current').value,
+          photo
+        });
+        msg.style.color = 'var(--green)';
+        msg.textContent = 'Salvat.';
+      } catch (err) {
+        msg.style.color = 'var(--red)';
+        msg.textContent = err.message || String(err);
+      }
+    });
+    document.getElementById('set-reset').addEventListener('click', async () => {
+      try {
+        await window.FarcasaAuth.resetPassword(user.email);
+        alert('Email de reset trimis.');
+      } catch (e) { alert(e.message); }
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js?v=20261005b"></script>
+  <style>
+    .forum-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr 260px;
+      height: calc(100vh - 76px);
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    @media (max-width: 1024px) {
+      .forum-layout { grid-template-columns: 200px 1fr 220px; }
+    }
+    @media (max-width: 768px) {
+      .forum-layout { grid-template-columns: 1fr; }
+      .forum-sidebar, .members-panel { max-height: 200px; overflow: auto; border-bottom: 1px solid var(--border); border-right: none !important; border-left: none !important; }
+    }
+    .forum-sidebar { background: var(--bg-elevated); border-right: 1px solid var(--border); padding: 1rem; }
+    .members-panel {
+      background: var(--bg-elevated);
+      border-left: 1px solid var(--border);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .member-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.5rem; border-radius: 0.5rem;
+      cursor: pointer; width: 100%; text-align: left;
+      border: 1px solid transparent; background: transparent; color: var(--text);
+      font-size: 0.85rem;
+    }
+    .member-row:hover { background: var(--bg-muted); }
+    .member-row.pending {
+      background: color-mix(in srgb, #8B4513 35%, var(--bg-card));
+      border-color: #8B4513;
+      color: #f5e6d3;
+    }
+    .member-row.muted { opacity: 0.65; }
+    .member-row.banned { opacity: 0.5; text-decoration: line-through; }
+    .member-menu {
+      position: absolute; z-index: 50; min-width: 180px;
+      background: var(--bg-card); border: 2px solid var(--border);
+      border-radius: 0.75rem; padding: 0.5rem; box-shadow: var(--shadow);
+    }
+    .member-menu button {
+      display: block; width: 100%; text-align: left;
+      padding: 0.4rem 0.6rem; border: none; background: transparent;
+      color: var(--text); border-radius: 0.4rem; cursor: pointer; font-size: 0.85rem;
+    }
+    .member-menu button:hover { background: var(--bg-muted); }
+    .ch-btn {
+      width: 100%; text-align: left; padding: 0.55rem 0.75rem; border-radius: 0.5rem;
+      border: 1px solid transparent; color: var(--text); background: transparent; cursor: pointer;
+      font-size: 0.9rem; margin-bottom: 0.25rem;
+    }
+    .ch-btn:hover { background: var(--bg-muted); }
+    .ch-btn.active { background: var(--gradient-btn); color: #fff; border-color: transparent; }
+    .msg-row { display: flex; gap: 0.75rem; padding: 0.65rem 0.5rem; border-radius: 0.5rem; }
+    .msg-row:hover { background: var(--bg-muted); }
+    .avatar-sm {
+      width: 2.25rem; height: 2.25rem; border-radius: 9999px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.7rem; color: #fff;
+      background: var(--gradient-btn); cursor: pointer;
+    }
+    .profile-pop {
+      position: absolute; z-index: 40; min-width: 200px; max-width: 280px;
+      background: var(--bg-card); border: 2px solid var(--border); border-radius: 0.75rem;
+      padding: 0.85rem; box-shadow: var(--shadow);
+    }
+    .msg-list { flex: 1; overflow-y: auto; padding: 1rem; min-height: 0; }
+    .composer { border-top: 1px solid var(--border); padding: 0.75rem 1rem; background: var(--bg-elevated); }
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <script>
+  /* Interceptare dialoguri native, chiar daca un script vechi din cache le cheama */
+  (function () {
+    function ensure() {
+      var root = document.getElementById('site-dialog');
+      if (root) return root;
+      root = document.createElement('div');
+      root.id = 'site-dialog';
+      root.style.cssText = 'display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.45)';
+      root.innerHTML = '<div style="width:min(420px,100%);padding:1.25rem;border-radius:1rem;background:var(--bg-card,#fff);color:var(--text,#111);font-family:Inter,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.25)">'
+        + '<h3 id="sd-title" style="font-size:1.1rem;font-weight:700;margin:0 0 .5rem"></h3>'
+        + '<p id="sd-text" style="font-size:.9rem;margin:0 0 .75rem;opacity:.8"></p>'
+        + '<input id="sd-input" autocomplete="off" name="sd-x" style="width:100%;padding:.6rem .75rem;border-radius:.6rem;border:1px solid #ccc;margin-bottom:.75rem;display:none">'
+        + '<div style="display:flex;justify-content:flex-end;gap:.5rem">'
+        + '<button type="button" id="sd-cancel" style="padding:.45rem .8rem;border-radius:.6rem;border:1px solid #ccc;background:transparent;cursor:pointer">Anulează</button>'
+        + '<button type="button" id="sd-ok" style="padding:.45rem .9rem;border-radius:.6rem;border:0;background:#0f766e;color:#fff;cursor:pointer">OK</button>'
+        + '</div></div>';
+      document.addEventListener('DOMContentLoaded', function () { document.body.appendChild(root); });
+      if (document.body) document.body.appendChild(root);
+      return root;
+    }
+    function ask(opts) {
+      var root = ensure();
+      var title = root.querySelector('#sd-title');
+      var text = root.querySelector('#sd-text');
+      var input = root.querySelector('#sd-input');
+      var ok = root.querySelector('#sd-ok');
+      var cancel = root.querySelector('#sd-cancel');
+      title.textContent = opts.title || 'Mesaj';
+      text.textContent = opts.text || '';
+      input.style.display = opts.prompt ? 'block' : 'none';
+      input.value = '';
+      cancel.style.display = opts.alert ? 'none' : '';
+      ok.textContent = opts.okLabel || 'OK';
+      root.style.display = 'flex';
+      if (opts.prompt) setTimeout(function () { input.focus(); }, 30);
+      return new Promise(function (resolve) {
+        function close(v) { root.style.display = 'none'; ok.onclick = null; cancel.onclick = null; resolve(v); }
+        ok.onclick = function () { close(opts.prompt ? input.value.trim() : true); };
+        cancel.onclick = function () { close(opts.prompt ? null : false); };
+      });
+    }
+    window.alert = function (msg) { ask({ title: 'Mesaj', text: String(msg || ''), alert: true }); };
+    window.confirm = function (msg) {
+      /* confirm sincron nu poate astepta; intoarcem false si deschidem fereastra */
+      ask({ title: 'Confirmă', text: String(msg || ''), okLabel: 'Da' });
+      return false;
+    };
+    window.prompt = function (msg) {
+      ask({ title: 'Completează', text: String(msg || ''), prompt: true, okLabel: 'Salvează' });
+      return null;
+    };
+    window.FarcasaUI = window.FarcasaUI || {};
+    window.FarcasaUI.alert = function (text, title) { return ask({ title: title || 'Mesaj', text: text, alert: true }); };
+    window.FarcasaUI.confirm = function (text, title) { return ask({ title: title || 'Confirmă', text: text, okLabel: 'Da' }); };
+    window.FarcasaUI.prompt = function (text, title, value) { return ask({ title: title || 'Completează', text: text, prompt: true, value: value || '', okLabel: 'Salvează' }); };
+  })();
+  </script>
+
+  <header class="site-header">
+    <div class="header-inner mx-auto px-4 py-3 flex items-center justify-between gap-3 w-full max-w-none">
+      <a href="index.html"><img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 md:h-16 w-auto object-contain"></a>
+      <nav class="hidden lg:flex items-center gap-5 text-sm font-medium">
+        <a href="index.html" style="color:var(--text)">Acasă</a>
+        <a href="postari.html" style="color:var(--text)">Postări</a>
+        <a href="forum.html" style="color:var(--teal);border-bottom:2px solid var(--teal);padding-bottom:2px">Forum</a>
+        <a href="despre.html" style="color:var(--text)">Despre</a>
+        <a href="evenimente.html" style="color:var(--text)">Evenimente</a>
+        <a href="monitorizare.html" style="color:var(--text)">Monitorizare</a>
+        <a href="contact.html" style="color:var(--text)">Contact</a>
+        <a href="login.html" data-guest-only class="font-semibold" style="color:var(--red)">Cont</a>
+        <a href="dashboard.html" data-admin-only class="hidden font-semibold" style="color:var(--red)">Dashboard</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="https://www.instagram.com/tineri.farcasa/" target="_blank" rel="noopener" class="social-link" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.facebook.com/share/1CbVL5u2SM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="social-link" title="Facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+        <button type="button" data-lang-btn class="btn-yellow text-xs px-2.5 py-1">EN</button>
+        <button id="mobile-menu-btn" class="lg:hidden btn-ghost">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="px-4 pt-4 mx-auto w-full">
+    <h1 class="text-2xl font-bold mb-3" style="color:var(--text)">Forum</h1>
+  </div>
+
+  <div class="forum-layout mx-auto border-t w-full" style="border-color:var(--border)">
+    <aside class="forum-sidebar">
+      <p class="text-xs font-semibold uppercase tracking-wide mb-2 text-muted">Canale</p>
+      <div id="channel-list"></div>
+      <div class="mt-4 space-y-2">
+        <button type="button" id="btn-create-ch" class="btn-primary w-full text-sm py-2">+ Canal nou</button>
+        <p id="forum-login-hint" class="text-xs text-muted hidden">Pentru a scrie sau crea canal, <a href="login.html" style="color:var(--teal)">autentifică-te</a>.</p>
+      </div>
+    </aside>
+
+    <section class="flex flex-col min-h-0" style="background:var(--bg);height:100%;overflow:hidden">
+      <div class="px-4 py-3 flex flex-wrap items-center justify-between gap-2" style="border-bottom:1px solid var(--border);background:var(--bg-elevated)">
+        <div>
+          <h2 id="ch-title" class="font-bold" style="color:var(--text)">Discuții</h2>
+          <p id="ch-sub" class="text-xs text-muted"></p>
+        </div>
+        <div id="ch-actions" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <div id="join-panel" class="hidden px-4 py-3" style="background:var(--yellow-soft);border-bottom:1px solid var(--yellow)">
+        <p class="text-sm mb-2" style="color:var(--text)">Nu ești membru al acestui canal.</p>
+        <button type="button" id="btn-request-join" class="btn-primary text-sm py-1.5">Request to join</button>
+      </div>
+
+      <div id="msg-list" class="msg-list"></div>
+
+      <div class="composer">
+        <form id="msg-form" class="flex gap-2" autocomplete="off">
+          <div id="msg-input" class="flex-1 px-4 py-2.5" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Scrie un mesaj…" style="min-height:44px;border:1px solid var(--border);border-radius:0.75rem;background:var(--bg-elevated);outline:none"></div>
+          <button type="submit" id="msg-send" class="btn-primary" disabled>Trimite</button>
+        </form>
+        <p id="msg-hint" class="text-xs text-muted mt-1"></p>
+      </div>
+    </section>
+
+    <aside class="members-panel">
+      <p class="text-xs font-semibold uppercase tracking-wide mb-2 text-muted">Utilizatori</p>
+      <input type="search" id="member-search" class="w-full px-3 py-2 text-sm mb-2" placeholder="Caută după nume…">
+      <div id="member-list" class="flex-1 overflow-y-auto space-y-0.5" style="min-height:0;overflow:auto;flex:1"></div>
+    </aside>
+  </div>
+
+  
+  <div id="fy-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:16px">
+    <div style="width:min(420px,100%);background:var(--bg-card,#fff);color:var(--text,#111);border-radius:16px;padding:20px;font-family:Inter,sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.3)">
+      <h3 id="fy-title" style="margin:0 0 8px;font-size:18px;font-weight:700"></h3>
+      <p id="fy-text" style="margin:0 0 12px;font-size:14px;opacity:.8"></p>
+      <input id="fy-input" autocomplete="off" style="display:none;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border,#ccc);margin-bottom:12px;background:var(--bg,#fff);color:inherit">
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" id="fy-cancel" style="padding:8px 14px;border-radius:10px;border:1px solid var(--border,#ccc);background:transparent;color:inherit;cursor:pointer">Anulează</button>
+        <button type="button" id="fy-ok" style="padding:8px 14px;border-radius:10px;border:0;background:#0f766e;color:#fff;cursor:pointer">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profile-pop" class="profile-pop hidden"></div>
+  <div id="member-menu" class="member-menu hidden"></div>
+
+  <script src="js/main.js?v=20261005b"></script>
+  <div id="site-dialog" class="hidden" style="position:fixed;inset:0;z-index:90;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.45)">
+    <div class="card" style="width:min(420px,100%);padding:1.25rem;background:var(--bg-card);color:var(--text)">
+      <h3 id="site-dialog-title" class="text-lg font-bold mb-2" style="color:var(--text)"></h3>
+      <p id="site-dialog-text" class="text-sm mb-3" style="color:var(--text-muted)"></p>
+      <input id="site-dialog-input" class="w-full px-3 py-2 mb-3 hidden" autocomplete="off" name="no-autofill-channel">
+      <div class="flex justify-end gap-2">
+        <button type="button" id="site-dialog-cancel" class="btn-ghost text-sm py-2">Anulează</button>
+        <button type="button" id="site-dialog-ok" class="btn-primary text-sm py-2">OK</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    window.FarcasaUI = (function () {
+      function open(opts) {
+        const root = document.getElementById('site-dialog');
+        const title = document.getElementById('site-dialog-title');
+        const text = document.getElementById('site-dialog-text');
+        const input = document.getElementById('site-dialog-input');
+        const ok = document.getElementById('site-dialog-ok');
+        const cancel = document.getElementById('site-dialog-cancel');
+        title.textContent = opts.title || '';
+        text.textContent = opts.text || '';
+        input.classList.toggle('hidden', !opts.prompt);
+        input.value = opts.value || '';
+        cancel.style.display = opts.alert ? 'none' : '';
+        ok.textContent = opts.okLabel || 'OK';
+        root.classList.remove('hidden');
+        root.style.display = 'flex';
+        if (opts.prompt) setTimeout(() => input.focus(), 20);
+        return new Promise((resolve) => {
+          function close(val) {
+            root.style.display = 'none';
+            root.classList.add('hidden');
+            ok.onclick = null;
+            cancel.onclick = null;
+            resolve(val);
+          }
+          ok.onclick = () => close(opts.prompt ? input.value.trim() : true);
+          cancel.onclick = () => close(opts.prompt ? null : false);
+        });
+      }
+      return {
+        alert(text, title) { return open({ title: title || 'Mesaj', text, alert: true }); },
+        confirm(text, title) { return open({ title: title || 'Confirmă', text, okLabel: 'Da' }); },
+        prompt(text, title, value) { return open({ title: title || 'Completează', text, prompt: true, value: value || '', okLabel: 'Salvează' }); }
+      };
+    })();
+  </script>
+  <script>
+  (function () {
+
+    function fyAsk(opts) {
+      const root = document.getElementById('fy-modal');
+      const title = document.getElementById('fy-title');
+      const text = document.getElementById('fy-text');
+      const input = document.getElementById('fy-input');
+      const ok = document.getElementById('fy-ok');
+      const cancel = document.getElementById('fy-cancel');
+      title.textContent = opts.title || '';
+      text.textContent = opts.text || '';
+      input.style.display = opts.prompt ? 'block' : 'none';
+      input.value = opts.value || '';
+      cancel.style.display = opts.alert ? 'none' : '';
+      ok.textContent = opts.okLabel || 'OK';
+      root.style.display = 'flex';
+      if (opts.prompt) setTimeout(() => input.focus(), 20);
+      return new Promise((resolve) => {
+        const close = (v) => { root.style.display = 'none'; ok.onclick = null; cancel.onclick = null; resolve(v); };
+        ok.onclick = () => close(opts.prompt ? input.value.trim() : true);
+        cancel.onclick = () => close(opts.prompt ? null : false);
+      });
+    }
+
+    let channels = [];
+    let currentId = 'discutii';
+    let currentCh = null;
+    let unsub = null;
+    let profileCache = {};
+    let memberData = { members: [], pending: [] };
+    let memberFilter = '';
+
+    const $ = (id) => document.getElementById(id);
+
+    function initials(name) {
+      const p = String(name || '?').trim().split(/\s+/);
+      if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
+      return String(name || '?').slice(0, 2).toUpperCase();
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    async function boot() {
+      if (window.FarcasaAuth?.waitAuth) await window.FarcasaAuth.waitAuth(4000);
+      const logged = window.FarcasaAuth?.isLoggedIn?.();
+      $('forum-login-hint').classList.toggle('hidden', !!logged);
+      $('btn-create-ch').disabled = !logged;
+      try {
+        await window.FarcasaForum.ensureSystemChannels();
+        channels = await window.FarcasaForum.listChannels();
+        renderChannelList();
+        await selectChannel(currentId);
+      } catch (e) {
+        console.error(e);
+        $('msg-list').innerHTML = '<p class="text-sm p-4" style="color:var(--red)">Forum indisponibil: ' + (e.message || e) + '. Verifică Firebase Rules.</p>';
+      }
+    }
+
+    function renderChannelList() {
+      const box = $('channel-list');
+      box.innerHTML = channels.map((ch) => {
+        const badge = ch.type === 'owned' ? ' · personal' : '';
+        return `<button type="button" class="ch-btn${ch.id === currentId ? ' active' : ''}" data-ch="${ch.id}"># ${ch.name}${badge}</button>`;
+      }).join('') || '<p class="text-xs text-muted">Niciun canal</p>';
+      box.querySelectorAll('[data-ch]').forEach((btn) => {
+        btn.addEventListener('click', () => selectChannel(btn.dataset.ch));
+      });
+    }
+
+    async function selectChannel(id) {
+      currentId = id;
+      if (unsub) { unsub(); unsub = null; }
+      currentCh = await window.FarcasaForum.getChannel(id);
+      if (!currentCh) currentCh = channels.find((c) => c.id === id) || { id, name: id, type: 'public' };
+      renderChannelList();
+      $('ch-title').textContent = currentCh.name || id;
+      const user = window.FarcasaAuth.getUser();
+      const profile = await window.FarcasaForum.getMyProfile();
+      const canRead = window.FarcasaForum.canRead(currentCh, profile, user);
+      const canPost = window.FarcasaForum.canPost(currentCh, profile, user);
+      const isMod = window.FarcasaForum.isChannelMod(currentCh, user);
+
+      let sub = '';
+      if (currentCh.type === 'public') sub = 'Canal deschis – toată lumea';
+      if (currentCh.type === 'anunturi') sub = 'Doar conducere / admin pot posta';
+      if (currentCh.type === 'conducere') sub = 'Canal coordonare';
+      if (currentCh.type === 'owned') sub = 'Canal personal' + (currentCh.ownerEmail ? ' · ' + currentCh.ownerEmail : '');
+      $('ch-sub').textContent = sub;
+
+      const actions = $('ch-actions');
+      actions.innerHTML = '';
+      const admin = user && (window.FarcasaAuth.isAdmin(user) || window.FarcasaAuth.isSuperAdmin(user));
+      const owner = user && currentCh.type === 'owned' && currentCh.ownerId === user.uid;
+      if (admin || owner) {
+        const clr = document.createElement('button');
+        clr.className = 'btn-ghost text-xs py-1';
+        clr.textContent = 'Șterge istoricul';
+        clr.onclick = async () => {
+          if (!(await fyAsk({ title: 'Șterge istoricul', text: 'Ștergi toate mesajele din acest canal?', okLabel: 'Șterge' }))) return;
+          try {
+            await window.FarcasaForum.clearHistory(id);
+            await selectChannel(id);
+          } catch (e) { await fyAsk({ title: 'Eroare', text: e.message, alert: true }); }
+        };
+        actions.appendChild(clr);
+      }
+      if (admin || owner) {
+        const del = document.createElement('button');
+        del.className = 'btn-outline text-xs py-1';
+        del.textContent = 'Șterge canalul';
+        del.onclick = async () => {
+          if (!(await fyAsk({ title: 'Șterge canalul', text: 'Ștergi canalul și mesajele?', okLabel: 'Șterge' }))) return;
+          try {
+            await window.FarcasaForum.deleteChannel(id);
+            channels = await window.FarcasaForum.listChannels();
+            await selectChannel('discutii');
+          } catch (e) { await fyAsk({ title: 'Eroare', text: e.message, alert: true }); }
+        };
+        actions.appendChild(del);
+      }
+
+      const needJoin = currentCh.type === 'owned' && user && !canRead;
+      $('join-panel').classList.toggle('hidden', !needJoin);
+      $('msg-list').classList.toggle('hidden', needJoin && currentCh.type === 'owned');
+
+      $('msg-input').setAttribute('contenteditable', canPost ? 'true' : 'false');
+      $('msg-send').disabled = !canPost;
+      if (!user) $('msg-hint').textContent = 'Autentifică-te ca să scrii.';
+      else if (!canPost) $('msg-hint').textContent = 'Nu ai dreptul să postezi pe acest canal.';
+      else $('msg-hint').textContent = '';
+
+      await loadMemberList();
+
+      if (!needJoin) {
+        unsub = window.FarcasaForum.subscribeMessages(id, (rows) => renderMessages(rows));
+      } else {
+        $('msg-list').innerHTML = '';
+      }
+    }
+
+    async function loadMemberList() {
+      try {
+        memberData = await window.FarcasaForum.listChannelUsers(currentId);
+      } catch (e) {
+        console.error(e);
+        memberData = { members: [], pending: [] };
+      }
+      renderMemberList();
+    }
+
+    function renderMemberList() {
+      const box = $('member-list');
+      if (!box) return;
+      const q = (memberFilter || '').toLowerCase().trim();
+      const pending = (memberData.pending || []).filter((u) =>
+        !q || String(u.displayName).toLowerCase().includes(q) || String(u.email).toLowerCase().includes(q)
+      );
+      const members = (memberData.members || []).filter((u) =>
+        !q || String(u.displayName).toLowerCase().includes(q) || String(u.email).toLowerCase().includes(q)
+      );
+
+      const user = window.FarcasaAuth.getUser();
+      const isMod = window.FarcasaForum.isChannelMod(currentCh, user)
+        || window.FarcasaAuth.isSuperAdmin(user);
+
+      let html = '';
+      // pending first, brown
+      pending.forEach((u) => {
+        html += `<button type="button" class="member-row pending" data-pending="1" data-uid="${u.uid}" data-req="${u.requestId || ''}" data-name="${escapeHtml(u.displayName)}">
+          <span class="avatar-sm" style="width:1.75rem;height:1.75rem;font-size:0.6rem;background:#8B4513">${initials(u.displayName)}</span>
+          <span class="truncate flex-1">${escapeHtml(u.displayName)}</span>
+          <span class="text-xs opacity-80">request</span>
+        </button>`;
+      });
+      members.forEach((u) => {
+        const cls = ['member-row'];
+        if (u.muted) cls.push('muted');
+        if (u.banned) cls.push('banned');
+        const col = window.FarcasaForum.chatColorFor(u) || '#A78BFA';
+        const badges = [];
+        if (u.isOwner) badges.push('owner');
+        if (u.muted) badges.push('mute');
+        if (u.banned) badges.push('kick');
+        html += `<button type="button" class="${cls.join(' ')}" data-uid="${u.uid}" data-name="${escapeHtml(u.displayName)}" data-muted="${u.muted ? 1 : 0}" data-banned="${u.banned ? 1 : 0}">
+          <span class="avatar-sm" style="width:1.75rem;height:1.75rem;font-size:0.6rem;background:${col};overflow:hidden">${u.photo ? `<img src="${u.photo}" alt="" style="width:100%;height:100%;object-fit:cover">` : initials(u.displayName)}</span>
+          <span class="truncate flex-1" style="color:${col}">${escapeHtml(u.displayName)}</span>
+          ${badges.length ? `<span class="text-xs text-muted">${badges.join(' · ')}</span>` : ''}
+        </button>`;
+      });
+      if (!html) html = '<p class="text-xs text-muted p-1">Niciun utilizator</p>';
+      box.innerHTML = html;
+
+      box.querySelectorAll('.member-row').forEach((row) => {
+        row.addEventListener('click', (ev) => {
+          if (!isMod) {
+            // non-mod: show profile only
+            showProfile(ev, row.dataset.uid, row.dataset.name);
+            return;
+          }
+          openMemberMenu(ev, row);
+        });
+      });
+    }
+
+    function openMemberMenu(ev, row) {
+      const menu = $('member-menu');
+      const uid = row.dataset.uid;
+      const name = row.dataset.name || uid;
+      const isPending = row.dataset.pending === '1';
+      const reqId = row.dataset.req;
+      const muted = row.dataset.muted === '1';
+      const banned = row.dataset.banned === '1';
+
+      let items = '';
+      if (isPending) {
+        items = `
+          <button type="button" data-act="allow-req">Allow (acceptă join)</button>
+          <button type="button" data-act="reject-req">Reject</button>`;
+      } else {
+        items = `
+          <button type="button" data-act="mute">${muted ? 'Unmute' : 'Mute'}</button>
+          <button type="button" data-act="kick">Kick</button>
+          <button type="button" data-act="allow">Allow (re-admit)</button>
+          <button type="button" data-act="unmute">Unmute</button>`;
+      }
+      menu.innerHTML = `<p class="text-xs font-semibold px-2 py-1 mb-1" style="color:var(--text)">${escapeHtml(name)}</p>${items}`;
+      menu.classList.remove('hidden');
+      const x = Math.min(ev.clientX, window.innerWidth - 200);
+      const y = Math.min(ev.clientY, window.innerHeight - 200);
+      menu.style.left = x + 'px';
+      menu.style.top = y + 'px';
+
+      menu.querySelectorAll('[data-act]').forEach((btn) => {
+        btn.onclick = async () => {
+          try {
+            const act = btn.dataset.act;
+            if (act === 'allow-req') await window.FarcasaForum.respondJoin(reqId, true);
+            else if (act === 'reject-req') await window.FarcasaForum.respondJoin(reqId, false);
+            else if (act === 'mute') await window.FarcasaForum.muteUser(currentId, uid, true);
+            else if (act === 'unmute') await window.FarcasaForum.muteUser(currentId, uid, false);
+            else if (act === 'kick') await window.FarcasaForum.kickUser(currentId, uid);
+            else if (act === 'allow') await window.FarcasaForum.allowUser(currentId, uid);
+            menu.classList.add('hidden');
+            await loadMemberList();
+          } catch (e) {
+            fyAsk({ title: 'Eroare', text: e.message || String(e), alert: true });
+          }
+        };
+      });
+    }
+
+    async function renderMessages(rows) {
+      const box = $('msg-list');
+      if (!rows.length) {
+        box.innerHTML = '<p class="text-sm text-muted p-2">Niciun mesaj încă. Fii primul!</p>';
+        return;
+      }
+      const ids = [...new Set(rows.map((m) => m.authorId).filter(Boolean))];
+      await Promise.all(ids.map(async (uid) => {
+        if (!profileCache[uid]) profileCache[uid] = await window.FarcasaForum.getUserProfile(uid);
+      }));
+      box.innerHTML = rows.map((m) => {
+        const prof = profileCache[m.authorId] || {};
+        const name = m.authorName || prof.displayName || m.authorEmail || 'User';
+        const ini = initials(name);
+        const col = window.FarcasaForum.chatColorFor(prof) || '#A78BFA';
+        let time = '';
+        if (m.createdAt && m.createdAt.toDate) time = m.createdAt.toDate().toLocaleString('ro-RO', { dateStyle: 'short', timeStyle: 'short' });
+        const photo = prof.photo ? `<img src="${prof.photo}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:999px">` : ini;
+        return `<div class="msg-row">
+          <div class="avatar-sm" style="background:${col}" data-uid="${m.authorId || ''}" data-name="${name.replace(/"/g, '')}" title="Vezi roluri">${photo}</div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-baseline gap-2">
+              <button type="button" class="font-semibold text-sm author-btn" style="color:${col}" data-uid="${m.authorId || ''}" data-name="${name.replace(/"/g, '')}">${name}</button>
+              <span class="text-xs text-muted">${time}</span>
+            </div>
+            <p class="text-sm mt-0.5 whitespace-pre-wrap" style="color:var(--text-muted)">${escapeHtml(m.text || '')}</p>
+          </div>
+        </div>`;
+      }).join('');
+      box.querySelectorAll('.avatar-sm, .author-btn').forEach((el) => {
+        el.addEventListener('click', (ev) => showProfile(ev, el.dataset.uid, el.dataset.name));
+      });
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function showProfile(ev, uid, name) {
+      const pop = $('profile-pop');
+      let prof = uid ? (profileCache[uid] || await window.FarcasaForum.getUserProfile(uid)) : {};
+      if (uid) profileCache[uid] = prof;
+      const roles = window.FarcasaForum.rolesLabel({ ...prof, email: prof.email });
+      pop.innerHTML = `
+        <div class="flex items-center gap-3 mb-2">
+          <div class="avatar-sm" style="background:${window.FarcasaForum.chatColorFor(prof)}">${initials(name || prof.displayName)}</div>
+          <div>
+            <p class="font-bold text-sm" style="color:var(--text)">${name || prof.displayName || 'User'}</p>
+            <p class="text-xs text-muted">${prof.email || ''}</p>
+          </div>
+        </div>
+        <p class="text-xs font-semibold mb-1" style="color:var(--text)">Roluri / grade</p>
+        <ul class="text-xs space-y-1" style="color:var(--text-muted)">
+          ${roles.map((r) => {
+            const def = (window.FARCASA_ROLES || []).find(x => x.label === r);
+            const c = def && def.chatColor ? def.chatColor : (r === 'Administrator' ? '#E37D12' : 'var(--text-muted)');
+            return '<li><span style="color:' + c + ';font-weight:600">●</span> ' + escapeHtml(r) + '</li>';
+          }).join('')}
+        </ul>`;
+      pop.classList.remove('hidden');
+      const x = Math.min(ev.clientX, window.innerWidth - 220);
+      const y = Math.min(ev.clientY + 8, window.innerHeight - 160);
+      pop.style.left = x + 'px';
+      pop.style.top = y + 'px';
+    }
+
+    document.addEventListener('click', (e) => {
+      const pop = $('profile-pop');
+      const menu = $('member-menu');
+      if (pop && !pop.contains(e.target) && !e.target.closest('.avatar-sm') && !e.target.closest('.author-btn')) {
+        pop.classList.add('hidden');
+      }
+      if (menu && !menu.contains(e.target) && !e.target.closest('.member-row')) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    $('member-search')?.addEventListener('input', (e) => {
+      memberFilter = e.target.value || '';
+      renderMemberList();
+    });
+
+    $('btn-create-ch')?.addEventListener('click', async () => {
+      if (!window.FarcasaAuth.isLoggedIn()) { location.href = 'login.html'; return; }
+      const name = await fyAsk({ title: 'Canal nou', text: 'Numele canalului tău personal', prompt: true, okLabel: 'Creează' });
+      if (!name) return;
+      try {
+        const id = await window.FarcasaForum.createMyChannel(name);
+        channels = await window.FarcasaForum.listChannels();
+        await selectChannel(id);
+      } catch (e) { await fyAsk({ title: 'Eroare', text: e.message || String(e), alert: true }); }
+    });
+
+    $('btn-request-join')?.addEventListener('click', async () => {
+      try {
+        await window.FarcasaForum.requestJoin(currentId);
+        await fyAsk({ title: 'Cerere', text: 'Cerere trimisă. Așteaptă aprobarea proprietarului.', alert: true });
+        await loadMemberList();
+      } catch (e) { fyAsk({ title: 'Eroare', text: e.message || String(e), alert: true }); }
+    });
+
+    $('msg-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        $('msg-form')?.requestSubmit();
+      }
+    });
+    $('msg-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = ($('msg-input').innerText || '').trim();
+      try {
+        await window.FarcasaForum.postMessage(currentId, text);
+        $('msg-input').innerText = '';
+      } catch (err) { await fyAsk({ title: 'Eroare', text: err.message || String(err), alert: true }); }
+    });
+
+    boot();
+  })();
+  </script>
+
+</body>
+</html>

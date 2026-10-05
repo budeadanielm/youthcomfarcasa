@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="light">
+<head>
+  <script>(function(){var t=localStorage.getItem('farcasa_theme_v2')||'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evenimente & Calendar – Fărcașa EYV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { eyv: { blue:'#0369A1',teal:'#0F766E',green:'#047857',red:'#DC2626',yellow:'#EAB308',cream:'#F0FDFA',dark:'#0F172A',orange:'#0F766E' } }, fontFamily: { sans: ['Inter','system-ui','sans-serif'] } } } }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sans antialiased">
+  <header class="site-header">
+    <div class="header-inner mx-auto px-4 py-3 flex items-center justify-between gap-3 w-full max-w-none">
+      <a href="index.html" class="flex items-center gap-3 shrink-0">
+        <img src="assets/logo-farcasa.png" alt="Fărcașa" class="h-14 md:h-16 w-auto object-contain">
+      </a>
+      <nav class="hidden lg:flex items-center gap-5 text-sm font-medium">
+        <a href="index.html" style="color:var(--text)">Acasă</a>
+        <a href="despre.html" style="color:var(--text)">Despre</a>
+        <a href="postari.html" style="color:var(--text)">Postări</a>
+        <a href="forum.html" style="color:var(--text)">Forum</a>
+        <a href="program.html" style="color:var(--text)">Program EYV</a>
+        <a href="evenimente.html" style="color:var(--teal);border-bottom:2px solid var(--teal);padding-bottom:2px">Evenimente</a>
+        <a href="monitorizare.html" style="color:var(--text)">Monitorizare</a>
+        <a href="feedback.html" style="color:var(--text)">Feedback</a>
+        <a href="impact.html" style="color:var(--text)">Impact</a>
+        <a href="contact.html" style="color:var(--text)">Contact</a>
+        <a href="login.html" data-guest-only class="font-semibold" style="color:var(--red)">Cont</a>
+        <a href="dashboard.html" data-admin-only class="hidden font-semibold" style="color:var(--red)">Dashboard</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="https://www.instagram.com/tineri.farcasa/" target="_blank" rel="noopener" class="social-link" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.facebook.com/share/1CbVL5u2SM/?mibextid=wwXIfr" target="_blank" rel="noopener" class="social-link" title="Facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6l.4-3H13v-2c0-.6.4-1 1-1z"/></svg></a>
+        <button type="button" data-theme-btn class="btn-ghost">🌙</button>
+        <button type="button" data-lang-btn class="btn-yellow text-xs px-2.5 py-1">EN</button>
+        <button id="mobile-menu-btn" class="lg:hidden btn-ghost">☰</button>
+      </div>
+    </div>
+    <div id="mobile-menu" class="hidden lg:hidden border-t px-4 py-3 space-y-1 text-sm" style="border-color:var(--border);background:var(--bg-elevated)">
+      <a href="index.html" class="block py-2" style="color:var(--text)">Acasă</a>
+      <a href="despre.html" class="block py-2" style="color:var(--text)">Despre</a>
+      <a href="program.html" class="block py-2" style="color:var(--text)">Program EYV</a>
+      <a href="evenimente.html" class="block py-2 font-medium" style="color:var(--teal)">Evenimente</a>
+      <a href="monitorizare.html" class="block py-2" style="color:var(--text)">Monitorizare</a>
+      <a href="feedback.html" class="block py-2" style="color:var(--text)">Feedback</a>
+      <a href="impact.html" class="block py-2" style="color:var(--text)">Impact</a>
+      <a href="contact.html" class="block py-2" style="color:var(--text)">Contact</a>
+      <a href="login.html" data-guest-only class="block py-2 font-semibold" style="color:var(--red)">Cont</a>
+      <a href="dashboard.html" data-admin-only class="hidden block py-2 font-semibold" style="color:var(--red)">Dashboard</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-10">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-3xl font-bold" style="color:var(--text)">
+          <span class="lang-ro">Calendar evenimente</span>
+          <span class="lang-en hidden">Events calendar</span>
+        </h1>
+        <p class="text-sm text-muted mt-1">
+          <span class="lang-ro">Activități planificate pentru 2027. Administrarea se face din Dashboard.</span>
+          <span class="lang-en hidden">Planned activities for 2027. Managed from the Dashboard.</span>
+        </p>
+      </div>
+      <a href="dashboard.html" data-admin-only class="hidden btn-primary text-sm">
+        <span class="lang-ro">Admin → editează calendar</span>
+        <span class="lang-en hidden">Admin → edit calendar</span>
+      </a>
+    </div>
+
+    <div class="card p-4 md:p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <button type="button" id="cal-prev" class="btn-ghost text-lg">←</button>
+        <h2 id="cal-title" class="text-lg font-bold" style="color:var(--text)"></h2>
+        <button type="button" id="cal-next" class="btn-ghost text-lg">→</button>
+      </div>
+      <div class="cal-grid text-center text-xs font-semibold mb-2 text-muted">
+        <div>Lu</div><div>Ma</div><div>Mi</div><div>Jo</div><div>Vi</div><div>Sâ</div><div>Du</div>
+      </div>
+      <div id="cal-grid" class="cal-grid"></div>
+    </div>
+
+    <div class="card p-4 md:p-6">
+      <h3 class="font-bold mb-3" style="color:var(--text)">
+        <span class="lang-ro">Listă evenimente</span>
+        <span class="lang-en hidden">Event list</span>
+      </h3>
+      <div id="event-list" class="space-y-3"></div>
+    </div>
+
+    <!-- Detail modal -->
+    <div id="ev-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.6)">
+      <div class="card p-6 max-w-md w-full relative">
+        <button type="button" id="ev-modal-close" class="absolute top-3 right-3 btn-ghost">✕</button>
+        <h3 id="ev-modal-title" class="font-bold text-lg mb-2" style="color:var(--text)"></h3>
+        <p id="ev-modal-date" class="text-sm text-muted mb-2"></p>
+        <p id="ev-modal-desc" class="text-sm" style="color:var(--text)"></p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer mt-12">
+    <div class="max-w-6xl mx-auto"><p>© 2026–2027 Grup de inițiativă Fărcașa</p></div>
+  </footer>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/events.js"></script>
+  <script>
+    (function () {
+      let view = new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
+      const monthsRo = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+      const monthsEn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+      async function render() {
+        const events = await window.FarcasaEvents.getAll();
+        const y = view.getFullYear(), m = view.getMonth();
+        const lang = localStorage.getItem('farcasa_lang') || 'ro';
+        document.getElementById('cal-title').textContent = (lang === 'en' ? monthsEn[m] : monthsRo[m]) + ' ' + y;
+
+        const first = new Date(y, m, 1);
+        let start = first.getDay() - 1; // Mon=0
+        if (start < 0) start = 6;
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const grid = document.getElementById('cal-grid');
+        grid.innerHTML = '';
+
+        const today = new Date();
+        for (let i = 0; i < start; i++) {
+          const d = document.createElement('div');
+          d.className = 'cal-day other';
+          grid.appendChild(d);
+        }
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+          const cell = document.createElement('div');
+          cell.className = 'cal-day';
+          if (today.getFullYear() === y && today.getMonth() === m && today.getDate() === day) cell.classList.add('today');
+          cell.innerHTML = '<div class="font-semibold">' + day + '</div>';
+          const dayEvents = events.filter(e => e.date === dateStr);
+          dayEvents.forEach(ev => {
+            const el = document.createElement('div');
+            el.className = 'ev' + (ev.type === 'red' ? ' red' : ev.type === 'yellow' ? ' yellow' : '');
+            el.textContent = ev.title;
+            el.title = ev.title;
+            el.addEventListener('click', (e) => { e.stopPropagation(); showModal(ev); });
+            cell.appendChild(el);
+          });
+          cell.addEventListener('click', () => {
+            if (dayEvents.length === 1) showModal(dayEvents[0]);
+          });
+          grid.appendChild(cell);
+        }
+
+        // List
+        const list = document.getElementById('event-list');
+        const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
+        list.innerHTML = sorted.map(ev => `
+          <button type="button" class="w-full text-left card p-3 flex gap-3 items-start hover:opacity-90" data-id="${ev.id}" style="border-color:var(--border)">
+            <span class="text-xs font-mono shrink-0 px-2 py-1 rounded" style="background:var(--bg-muted);color:var(--text)">${ev.date}</span>
+            <div>
+              <div class="font-semibold text-sm" style="color:var(--text)">${ev.title}</div>
+              <div class="text-xs text-muted">${ev.desc || ''}</div>
+            </div>
+          </button>
+        `).join('') || '<p class="text-muted text-sm">Niciun eveniment.</p>';
+        list.querySelectorAll('[data-id]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const ev = events.find(e => String(e.id) === btn.dataset.id);
+            if (ev) showModal(ev);
+          });
+        });
+      }
+
+      function showModal(ev) {
+        document.getElementById('ev-modal-title').textContent = ev.title;
+        document.getElementById('ev-modal-date').textContent = ev.date;
+        document.getElementById('ev-modal-desc').textContent = ev.desc || '';
+        document.getElementById('ev-modal').classList.remove('hidden');
+      }
+      document.getElementById('ev-modal-close').addEventListener('click', () => {
+        document.getElementById('ev-modal').classList.add('hidden');
+      });
+      document.getElementById('ev-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'ev-modal') e.target.classList.add('hidden');
+      });
+
+      document.getElementById('cal-prev').addEventListener('click', () => {
+        view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
+        render();
+      });
+      document.getElementById('cal-next').addEventListener('click', () => {
+        view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
+        render();
+      });
+
+      render();
+      document.querySelectorAll('[data-lang-btn]').forEach(b => b.addEventListener('click', () => setTimeout(render, 50)));
+    })();
+  </script>
+</body>
+</html>
